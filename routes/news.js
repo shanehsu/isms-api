@@ -18,10 +18,10 @@ router.post('/', function(req, res, next) {
     // TODO: Access Control!
     var body = req.body;
     var news = new News({
-        title: body.title,
         summary: body.summary,
         link: body.link,
-        date: Date(body.date)
+        date: Date(body.date),
+        source: body.source
     });
 
     news.save().then(function(doc) {

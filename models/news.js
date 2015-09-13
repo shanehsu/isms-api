@@ -3,9 +3,9 @@ var type = thinky.type;
 
 var News = thinky.createModel('News', {
     id: type.string(),
-    title: type.string(),
     date: type.date(),
     summary: type.string(),
+    source: type.string(),
     link: type.string()
 });
 
