@@ -14,4 +14,21 @@ router.get('/', function(req, res, next) {
     });
 });
 
+router.post('/', function(req, res, next) {
+    // TODO: Access Control!
+    var body = req.body;
+    var news = new News({
+        title: body.title,
+        summary: body.summary,
+        link: body.link,
+        date: Date(body.date)
+    });
+
+    news.save().then(function(doc) {
+        res.json(doc);
+    }).catch(function(err) {
+        next(err);
+    });
+});
+
 module.exports = router;
