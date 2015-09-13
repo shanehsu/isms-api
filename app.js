@@ -28,7 +28,7 @@ app.use(function(req, res, next) {
     next(err);
 });
 
-// error handlers
+// Error Handlers
 app.use(function(err, req, res, next) {
     console.log(err);
     console.log(err.message);
@@ -41,7 +41,7 @@ module.exports = app;
     Windows Server Credientials
     Administrator
     6c4tQRuBs
-    
+
     Address: 192.168.1.21
 */
 
