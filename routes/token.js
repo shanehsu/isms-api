@@ -38,7 +38,7 @@ router.post('/', function(req, res, next) {
                             var user_identity = array[0]
                             delete user_identity.tokens
                             var token = jwt.sign(user_identity, 's0mesecr3t');
-                            
+
                             rethink.table('users').getAll(req.body.email, {index: 'email'}).update({
                                 'tokens': rethink.row('tokens').append(token)
                             }).run(connection).then(function() {
@@ -46,7 +46,7 @@ router.post('/', function(req, res, next) {
                             }).error(function(err) {
                                 return next(new Error('cannot write token back to database'));
                             });
-                            
+
                         } else {
                             return next(new Error('user has multiple records linked to the same email'));
                         }
