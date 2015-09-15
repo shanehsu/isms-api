@@ -3,7 +3,7 @@ var logger = require('morgan');
 var bodyParser = require('body-parser');
 
 var news = require('./routes/news');
-// var token = require('./routes/token');
+var auth = require('./routes/auth');
 
 var app = express();
 
@@ -19,7 +19,7 @@ app.use(function(req, res, next) {
 
 // Routes Here
 app.use('/news', news);
-// app.use('/token', token);
+app.use('/auth', auth);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
