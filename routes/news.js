@@ -24,8 +24,42 @@ router.post('/', function(req, res, next) {
         source: body.source
     });
 
-    news.save().then(function(doc) {
-        res.json(doc);
+    news.save().then(function(news) {
+        res.json(news);
+    }).catch(function(err) {
+        next(err);
+    });
+});
+
+router.get('/:id', function(req, res, next) {
+    News.get(id).then(function(news) {
+        res.json(news);
+    }).catch(function(err) {
+        next(err);
+    });
+});
+
+router.put('/:id', function(req, res, next) {
+    News.get(id).then(function(news) {
+        news.merge(req.body).save(function(news) {
+            res.json(news);
+        }).catch(function(err) {
+            next(err);
+        });
+    }).catch(function(err) {
+        next(err);
+    });
+});
+
+router.delete('/:id', function(req, res, next) {
+    News.get(id).then(function(news) {
+        news.delete().then(function(result) {
+            res.json({
+                success: true
+            })
+        }).catch(function(err) {
+            next(err);
+        });
     }).catch(function(err) {
         next(err);
     });
