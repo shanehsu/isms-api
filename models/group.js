@@ -1,9 +1,4 @@
-var thinky = require('../util/thinky.js');
-var type = thinky.type;
+var mongoose = require('mongoose');
+var groupSchema = require('./../schemas/group');
 
-var Group = thinky.createModel('Groups', {
-    id: type.string(),
-    name: type.string()
-});
-
-module.exports = Group;
+module.exports = mongoose.model('Group', groupSchema);

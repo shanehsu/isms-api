@@ -1,9 +1,10 @@
 var express = require('express');
 var logger = require('morgan');
 var bodyParser = require('body-parser');
+var mongoose_connection = require('./util/mongoose');
 
-var news = require('./routes/news');
-var auth = require('./routes/auth');
+// var news = require('./routes/news');
+// var auth = require('./routes/auth');
 
 var app = express();
 
@@ -18,8 +19,8 @@ app.use(function(req, res, next) {
 });
 
 // Routes Here
-app.use('/news', news);
-app.use('/auth', auth);
+// app.use('/news', news);
+// app.use('/auth', auth);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -36,17 +37,3 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = app;
-
-/*
-    Windows Server Credientials
-    Administrator
-    6c4tQRuBs
-
-    Address: 192.168.1.21
-*/
-
-/*
-    Account Details
-    管理者：hsu.pengjun（Peng Jun Hsu）
-    使用者：user（Peng Jun Hsu）
-*/
