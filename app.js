@@ -1,9 +1,9 @@
 var express = require('express');
 var logger = require('morgan');
 var bodyParser = require('body-parser');
-var mongoose_connection = require('./util/mongoose');
+var mongoose = require('./util/mongoose');
 
-// var news = require('./routes/news');
+var pieces = require('./routes/pieces');
 // var auth = require('./routes/auth');
 
 var app = express();
@@ -19,7 +19,7 @@ app.use(function(req, res, next) {
 });
 
 // Routes Here
-// app.use('/news', news);
+app.use('/pieces', pieces);
 // app.use('/auth', auth);
 
 // catch 404 and forward to error handler

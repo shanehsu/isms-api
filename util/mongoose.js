@@ -32,3 +32,8 @@ require('./../models/group');
 require('./../models/piece');
 require('./../models/unit');
 require('./../models/user');
+
+// Configure Mongoose to use native Promise
+mongoose.Promise = global.Promise;
+
+module.exports = mongoose;
