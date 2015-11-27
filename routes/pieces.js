@@ -7,7 +7,7 @@ var router = express.Router();
 
 // List all pieces
 router.get('/', function(req, res, next) {
-    res.redirect('./' + (new Date).toISOString());
+    res.redirect('./' + (new Date).toISOString())
 });
 
 router.get('/:fromDate', function(req, res, next) {
@@ -15,61 +15,47 @@ router.get('/:fromDate', function(req, res, next) {
     Piece.find({
         date: {$lt: date}
     }).limit(10).exec().then(function(docs) {
-        res.json(docs);
+        res.json(docs)
     }).catch(function(err) {
-        next(err);
+        next(err)
     })
 });
 
-// router.post('/', function(req, res, next) {
-//     // TODO: Access Control!
-//     var body = req.body;
-//     var news = new News({
-//         summary: body.summary,
-//         link: body.link,
-//         date: Date(body.date),
-//         source: body.source
-//     });
-//
-//     news.save().then(function(news) {
-//         res.json(news);
-//     }).catch(function(err) {
-//         next(err);
-//     });
-// });
-//
-// router.get('/:id', function(req, res, next) {
-//     News.get(id).then(function(news) {
-//         res.json(news);
-//     }).catch(function(err) {
-//         next(err);
-//     });
-// });
-//
-// router.put('/:id', function(req, res, next) {
-//     News.get(id).then(function(news) {
-//         news.merge(req.body).save(function(news) {
-//             res.json(news);
-//         }).catch(function(err) {
-//             next(err);
-//         });
-//     }).catch(function(err) {
-//         next(err);
-//     });
-// });
-//
-// router.delete('/:id', function(req, res, next) {
-//     News.get(id).then(function(news) {
-//         news.delete().then(function(result) {
-//             res.json({
-//                 success: true
-//             })
-//         }).catch(function(err) {
-//             next(err);
-//         });
-//     }).catch(function(err) {
-//         next(err);
-//     });
-// });
+router.post('/', function(req, res, next) {
+    // if (validate_token(req.params.token)) {
+    //     next(new Error('invalid token.'));
+    // }
+    Piece.create(req.body).then(function(doc) {
+        res.json(doc)
+    }).catch(function(err) {
+        next(err)
+    })
+});
+
+router.put('/:id', function(req, res, next) {
+    // if (validate_token(req.params.token)) {
+    //     next(new Error('invalid token.'));
+    // }
+    Piece.findByIdAndUpdate(req.params.id, {
+        $set: req.body
+    }, {
+        "new": true
+    }).then(function(doc) {
+        res.json(doc)
+    }).catch(function(err) {
+        next(err);
+    })
+})
+
+router.delete('/:id', function(req, res, next) {
+    // if (validate_token(req.params.token)) {
+    //     next(new Error('invalid token.'));
+    // }
+    Piece.findByIdAndRemove(req.params.id).then(function(doc) {
+        res.sendStatus(200)
+    }).catch(function(err) {
+        next(err)
+    })
+})
 
 module.exports = router;
