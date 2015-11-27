@@ -7,11 +7,10 @@ var router = express.Router();
 
 // List all pieces
 router.get('/', function(req, res, next) {
-    res.redirect('./' + (new Date).toISOString())
-});
-
-router.get('/:fromDate', function(req, res, next) {
-    var date = new Date(req.params.fromDate);
+    let date = new Date();
+    if (req.query.fromDate) {
+        date = new Date(req.query.fromDate);
+    }
     Piece.find({
         date: {$lt: date}
     }).limit(10).exec().then(function(docs) {
