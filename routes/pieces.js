@@ -7,7 +7,7 @@ var router = express.Router();
 
 // List all pieces
 router.get('/', function(req, res, next) {
-    let date = new Date();
+    var date = new Date();
     if (req.query.fromDate) {
         date = new Date(req.query.fromDate);
     }
