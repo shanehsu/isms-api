@@ -21,10 +21,13 @@ router.get('/', function(req, res, next) {
 });
 
 router.post('/', function(req, res, next) {
-    // if (validate_token(req.params.token)) {
+    // if (validate_token(req.body.token)) {
     //     next(new Error('invalid token.'));
+    // } else {
+    //     req.body.token = undefined
     // }
     Piece.create(req.body).then(function(doc) {
+        res.status(201)
         res.json(doc)
     }).catch(function(err) {
         next(err)
@@ -32,8 +35,10 @@ router.post('/', function(req, res, next) {
 });
 
 router.put('/:id', function(req, res, next) {
-    // if (validate_token(req.params.token)) {
+    // if (validate_token(req.body.token)) {
     //     next(new Error('invalid token.'));
+    // } else {
+    //     req.body.token = undefined
     // }
     Piece.findByIdAndUpdate(req.params.id, {
         $set: req.body
@@ -47,8 +52,10 @@ router.put('/:id', function(req, res, next) {
 })
 
 router.delete('/:id', function(req, res, next) {
-    // if (validate_token(req.params.token)) {
+    // if (validate_token(req.body.token)) {
     //     next(new Error('invalid token.'));
+    // } else {
+    //     req.body.token = undefined
     // }
     Piece.findByIdAndRemove(req.params.id).then(function(doc) {
         res.sendStatus(200)
