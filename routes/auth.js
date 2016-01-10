@@ -29,7 +29,7 @@ router.post('/', function(req, res) {
                 used: Date.parse('2015-12-26T19:06:33.625Z'),
                 origin: '1.2.3.4',
                 userAgent: 'some_browser'
-            })
+            }
         ]
     }
 
