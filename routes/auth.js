@@ -41,12 +41,16 @@ router.post('/', function(req, res) {
     })
 });
 
-router.get('/test', function(req, res) {
+router.post('/test', function(req, res) {
     var token = req.body.token;
     var User  = auth.return_user(token);
 
-    console.dir(User);
-    res.send(200);
+    if (User) {
+        res.status(201)
+        res.json(doc)
+    } else {
+        res.send(404);
+    }
 });;
 
 router.get('/sso/login', function(req, res, next) {
