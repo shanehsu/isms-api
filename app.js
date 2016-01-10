@@ -4,7 +4,7 @@ var bodyParser = require('body-parser');
 var mongoose = require('./util/mongoose');
 
 var pieces = require('./routes/pieces');
-// var auth = require('./routes/auth');
+var auth = require('./routes/auth');
 
 var app = express();
 
