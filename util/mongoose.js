@@ -27,8 +27,9 @@ process.on('SIGINT', function() {
   });
 });
 
-// BRING IN YOUR SCHEMAS & MODELS // For example
-require('./../models/group');
+// BRING IN YOUR SCHEMAS & MODELS
+require('./../models/form');
+require('./../models/record');
 require('./../models/piece');
 require('./../models/unit');
 require('./../models/user');
