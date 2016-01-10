@@ -9,7 +9,7 @@ var tokenSchema = new Schema({
     token: String,
     used: Date,
     origin: String,
-    UA: String
+    userAgent: String
 });
 
 module.exports = tokenSchema;

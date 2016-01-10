@@ -8,6 +8,7 @@ var pieces = require('./routes/pieces');
 
 var app = express();
 
+// Disable Cacheing
 app.use(logger('dev'));
 app.use(bodyParser.json());
 
@@ -18,12 +19,19 @@ app.use(function(req, res, next) {
     next();
 });
 
+// Disable Cacheing
+app.use(function (req, res, next) {
+    res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+    res.header('Expires', '-1');
+    res.header('Pragma', 'no-cache');
+    next();
+});
+
 // Routes Here
 app.use('/pieces', pieces);
 // app.use('/auth', auth);
 
 // catch 404 and forward to error handler
-
 app.use("/", function(req, res) {
     res.send("Hello Express!");
 });
