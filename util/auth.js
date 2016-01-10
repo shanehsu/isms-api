@@ -16,7 +16,7 @@ var validate_token = function(token) {
     return (return_user == null) ? false : true;
 };
 
-exports = {
+module.exports = {
     validate_token: validate_token,
     return_user: return_user
 };
