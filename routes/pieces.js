@@ -15,9 +15,7 @@ router.get('/', function(req, res, next) {
         date: {$lt: date}
     }).limit(10).exec().then(function(docs) {
         res.json(docs)
-    }).catch(function(err) {
-        next(err)
-    })
+    }).catch(next);
 });
 
 router.post('/', function(req, res, next) {
@@ -29,9 +27,7 @@ router.post('/', function(req, res, next) {
     Piece.create(req.body).then(function(doc) {
         res.status(201)
         res.json(doc)
-    }).catch(function(err) {
-        next(err)
-    })
+    }).catch(next);
 });
 
 router.put('/:id', function(req, res, next) {
@@ -46,9 +42,7 @@ router.put('/:id', function(req, res, next) {
         "new": true
     }).then(function(doc) {
         res.json(doc)
-    }).catch(function(err) {
-        next(err);
-    })
+    }).catch(next);
 })
 
 router.delete('/:id', function(req, res, next) {
@@ -59,9 +53,7 @@ router.delete('/:id', function(req, res, next) {
     // }
     Piece.findByIdAndRemove(req.params.id).then(function(doc) {
         res.sendStatus(200)
-    }).catch(function(err) {
-        next(err)
-    })
+    }).catch(next);
 })
 
 module.exports = router;

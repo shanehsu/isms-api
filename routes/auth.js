@@ -7,70 +7,39 @@ var User    = require('../models/user');
 
 var router = express.Router();
 
-var auth    = require('../util/auth');
+var util    = require('../util/auth');
 
-/* 認證方式：
- * /sso/login 將使用者導向至登入畫面
- * 該登入畫面在使用者輸入帳號、密碼後，將使用者瀏覽器導向至 /sso/result
- * 在 /sso/result 內，若確認使用者登入成功，則導至 /sso/success
- * 在 /sso/success 內，生成 Token，並回傳給使用者
- */
+var jwt_private_key = 'some_very_secret_key';
 
-router.post('/', function(req, res) {
-    var test_user = {
-        email: 'user@test.com',
-        name: 'User',
-        title: 'User',
-        group: [],
-        unit: null,
-        tokens: [
-            {
-                token: 'abcd',
-                used: Date.parse('2015-12-26T19:06:33.625Z'),
-                origin: '1.2.3.4',
-                userAgent: 'some_browser'
-            }
-        ]
-    }
+router.post('/login', function(req, res, next) {
+    User.find({email: req.body.email}).then(function(users) {
+        console.dir(users);
+        if (users.length != 1) {
+            next(new Error('Email address correspond to zero/multiple user.'));
+        } else {
+            console.log('No password is required. Generating a token immediately.');
+            var payload = users[0];
+            payload.group = undefined;
+            payload.unit = undefined;
+            payload.tokens = undefined;
+            var token = {
+                token: jwt.sign(payload, jwt_private_key),
+                used: new Date(),
+                origin: req.ip,
+                userAgent: req.headers['user-agent']
+            };
 
-    User.create(test_user).then(function(doc) {
-        res.status(201)
-        res.json(doc)
-    }).catch(function(err) {
-        next(err)
-    })
-});
-
-router.post('/test', function(req, res) {
-    var token = req.body.token;
-    var User  = auth.return_user(token);
-
-    if (User) {
-        res.status(201)
-        res.json(doc)
-    } else {
-        res.send(404);
-    }
-});;
-
-router.get('/sso/login', function(req, res, next) {
-
-});
-
-router.get('/sso/result', function(req, res, next) {
-
-});
-
-router.get('/sso/result', function(req, res, next) {
-
+            User.findByIdAndUpdate(users[0]._id, {
+                $push: {
+                    tokens: token
+                }
+            }, {
+                "new": true
+            }).then(function(doc) {
+                res.send(token.token);
+            }).catch(next);
+        }
+    }).catch(next);
 });
 
 module.exports = router;
-
-/* 使用 SSO 後的認證方式
- *
- * /sso/login   導向至 SSO 畫面
- * /sso/result  判定 SSO 認證結果
- * /sso/success 生成 Token 並回傳
- *
- */
