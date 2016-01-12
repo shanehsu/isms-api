@@ -19,40 +19,31 @@ router.get('/', function(req, res, next) {
 });
 
 router.post('/', function(req, res, next) {
-    // if (validate_token(req.body.token)) {
-    //     next(new Error('invalid token.'));
-    // } else {
-    //     req.body.token = undefined
-    // }
-    Piece.create(req.body).then(function(doc) {
-        res.status(201)
-        res.json(doc)
+    authutils.validate_token(req.get('token')).then(function() {
+        Piece.create(req.body).then(function(doc) {
+            res.status(201);
+            res.json(doc);
+        }).catch(next);
     }).catch(next);
 });
 
 router.put('/:id', function(req, res, next) {
-    // if (validate_token(req.body.token)) {
-    //     next(new Error('invalid token.'));
-    // } else {
-    //     req.body.token = undefined
-    // }
-    Piece.findByIdAndUpdate(req.params.id, {
-        $set: req.body
-    }, {
-        "new": true
-    }).then(function(doc) {
-        res.json(doc)
+    authutils.validate_token(req.get('token')).then(function() {
+        Piece.findByIdAndUpdate(req.params.id, {
+            $set: req.body
+        }, {
+            "new": true
+        }).then(function(doc) {
+            res.json(doc)
+        }).catch(next);
     }).catch(next);
 })
 
 router.delete('/:id', function(req, res, next) {
-    // if (validate_token(req.body.token)) {
-    //     next(new Error('invalid token.'));
-    // } else {
-    //     req.body.token = undefined
-    // }
-    Piece.findByIdAndRemove(req.params.id).then(function(doc) {
-        res.sendStatus(200)
+    authutils.validate_token(req.get('token')).then(function() {
+        Piece.findByIdAndRemove(req.params.id).then(function(doc) {
+            res.sendStatus(200)
+        }).catch(next);
     }).catch(next);
 })
 

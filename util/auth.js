@@ -15,7 +15,7 @@ var return_user = function(token) {
 var validate_token = function(token) {
     return new Promise(function(resolve, reject) {
         return_user(token).then(function(doc) {
-            resolve(true)
+            resolve();
         }).catch(reject);
     });
 };
