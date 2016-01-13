@@ -6,6 +6,7 @@ var mongoose = require('./util/mongoose');
 var pieces = require('./routes/pieces');
 var auth = require('./routes/auth');
 var tokens = require('./routes/tokens');
+var users = require('./routes/users')
 
 var app = express();
 
@@ -32,6 +33,7 @@ app.use(function (req, res, next) {
 app.use('/pieces', pieces);
 app.use('/auth', auth);
 app.use('/tokens', tokens);
+app.use('/users', users);
 
 // catch 404 and forward to error handler
 app.use("/", function(req, res) {
