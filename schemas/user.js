@@ -10,7 +10,7 @@ var userSchema = new Schema({
     email: String,
     name: String,
     title: String,
-    group: [Number],
+    group: Number,
     unit: Schema.Types.ObjectId,
     tokens: [TokenSchema]
 });

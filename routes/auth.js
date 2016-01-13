@@ -20,7 +20,7 @@ router.post('/login', function(req, res, next) {
             payload.unit = undefined;
             payload.tokens = undefined;
             var token = {
-                token: jwt.sign(payload, jwt_private_key),
+                token: require('crypto').randomBytes(16).toString('hex'),
                 used: new Date(),
                 origin: req.ip,
                 userAgent: req.headers['user-agent']

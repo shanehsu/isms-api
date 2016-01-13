@@ -12,12 +12,12 @@ router.get('/', function(req, res, next) {
     }).catch(next);
 });
 
-router.delete('/:token', function(req, res, next) {
+router.delete('/:token_id', function(req, res, next) {
     authutils.return_user(req.get('token')).then(function(user) {
         user.update({
             $pull: {
                 tokens: {
-                    token: req.params.token
+                    _id: req.params.token_id
                 }
             }
         }, {

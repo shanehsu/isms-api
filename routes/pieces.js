@@ -19,7 +19,7 @@ router.get('/', function(req, res, next) {
 });
 
 router.post('/', function(req, res, next) {
-    authutils.validate_token(req.get('token')).then(function() {
+    authutils.ensure_group(req.get('token'), 1).then(function() {
         Piece.create(req.body).then(function(doc) {
             res.status(201);
             res.json(doc);
@@ -28,7 +28,7 @@ router.post('/', function(req, res, next) {
 });
 
 router.put('/:id', function(req, res, next) {
-    authutils.validate_token(req.get('token')).then(function() {
+    authutils.ensure_group(req.get('token'), 1).then(function() {
         Piece.findByIdAndUpdate(req.params.id, {
             $set: req.body
         }, {
@@ -40,7 +40,7 @@ router.put('/:id', function(req, res, next) {
 })
 
 router.delete('/:id', function(req, res, next) {
-    authutils.validate_token(req.get('token')).then(function() {
+    authutils.ensure_group(req.get('token'), 1).then(function() {
         Piece.findByIdAndRemove(req.params.id).then(function(doc) {
             res.sendStatus(200)
         }).catch(next);

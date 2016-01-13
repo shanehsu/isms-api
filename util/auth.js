@@ -14,13 +14,26 @@ var return_user = function(token) {
 
 var validate_token = function(token) {
     return new Promise(function(resolve, reject) {
-        return_user(token).then(function(doc) {
+        return_user(token).then(function(user) {
             resolve();
         }).catch(reject);
     });
 };
 
+var ensure_group = function(token, group) {
+    return new Promise(function(resolve, reject) {
+        return_user(token).then(function(user) {
+            if (user.group == group) {
+                resolve();
+            } else {
+                reject(new Error(403))
+            }
+        }).catch(reject);
+    });
+}
+
 module.exports = {
     validate_token: validate_token,
-    return_user: return_user
+    return_user: return_user,
+    ensure_group: ensure_group
 };
