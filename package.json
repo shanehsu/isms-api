@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "DEBUG=isms_api node ./bin/www"
+    "start": "DEBUG=isms_api node ./server.js"
   },
   "dependencies": {
     "body-parser": "~1.13.2",
