@@ -26,8 +26,13 @@ router.post('/', function(req, res, next) {
     }).catch(next);
 });
 
+router.get('/me', function(req, res, next) {
+  authutils.return_user(req.get('token')).then(function(user) {
+    res.json(user);
+  }).catch(next);
+});
+
 router.get('/:id', function(req, res, next) {
-    console.log("Here I am!");
     authutils.return_user(req.get('token')).then(function(user) {
         if (user.id == req.params.id) {
             res.json(user);
