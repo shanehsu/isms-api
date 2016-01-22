@@ -12,6 +12,18 @@ router.get('/', function(req, res, next) {
     }).catch(next);
 });
 
+router.post('/valid', function(req, res) {
+  authutils.validate_token(req.body.token).then(function() {
+    res.json({
+      valid: true
+    });
+  }).catch(function() {
+    res.json({
+      valid: false
+    });
+  });
+});
+
 router.delete('/:token_id', function(req, res, next) {
     authutils.return_user(req.get('token')).then(function(user) {
         user.update({
