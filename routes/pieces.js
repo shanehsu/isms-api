@@ -13,7 +13,7 @@ router.get('/', function(req, res, next) {
     }
     Piece.find({
         date: {$lt: date}
-    }).limit(10).exec().then(function(docs) {
+    }).sort({date: 'descending'}).limit(10).exec().then(function(docs) {
         res.json(docs)
     }).catch(next);
 });
