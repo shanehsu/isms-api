@@ -7,15 +7,18 @@ var router = express.Router();
 
 // List all pieces
 router.get('/', function(req, res, next) {
-    var date = new Date();
     if (req.query.fromDate) {
-        date = new Date(req.query.fromDate);
+        var date = new Date(req.query.fromDate);
+        Piece.find({
+            date: {$lt: date}
+        }).sort({date: 'descending'}).limit(10).exec().then(function(docs) {
+            res.json(docs)
+        }).catch(next);
+    } else {
+        Piece.find({}).sort({date: 'descending'}).exec().then(function(docs) {
+            res.json(docs)
+        }).catch(next);
     }
-    Piece.find({
-        date: {$lt: date}
-    }).sort({date: 'descending'}).limit(10).exec().then(function(docs) {
-        res.json(docs)
-    }).catch(next);
 });
 
 router.post('/', function(req, res, next) {
