@@ -2,6 +2,7 @@
 
 var express = require('express');
 var Piece = require('../models/piece');
+var authutils = require('../util/auth')
 
 var router = express.Router();
 
