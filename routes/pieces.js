@@ -45,7 +45,7 @@ router.put('/:id', function(req, res, next) {
         }, {
             "new": true
         }).then(function(doc) {
-            res.json(doc)
+            res.sendStatus(204);
         }).catch(next);
     }).catch(next);
 })
