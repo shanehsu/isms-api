@@ -22,6 +22,13 @@ router.get('/', function(req, res, next) {
     }
 });
 
+router.get('/:id', function(req, res, next) {
+  var id = req.params.id;
+  Piece.findById(id).then(function(doc) {
+    res.json(doc);
+  }).catch(next);
+});
+
 router.post('/', function(req, res, next) {
     authutils.ensure_group(req.get('token'), 1).then(function() {
         Piece.create(req.body).then(function(doc) {
