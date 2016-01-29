@@ -21,7 +21,8 @@ router.post('/', function(req, res, next) {
     authutils.ensure_group(req.get('token'), 1).then(function() {
         var new_user = new Users(req.body);
         new_user.save().then(function(user) {
-            res.send(user.id);
+          res.status(201);
+          res.send(user.id);
         }).catch(next);
     }).catch(next);
 });

@@ -33,7 +33,7 @@ router.post('/', function(req, res, next) {
     authutils.ensure_group(req.get('token'), 1).then(function() {
         Piece.create(req.body).then(function(doc) {
             res.status(201);
-            res.json(doc);
+            res.send(doc.id);
         }).catch(next);
     }).catch(next);
 });
