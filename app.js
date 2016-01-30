@@ -7,6 +7,7 @@ var pieces = require('./routes/pieces');
 var auth = require('./routes/auth');
 var tokens = require('./routes/tokens');
 var users = require('./routes/users')
+var units = require('./routes/units')
 
 var app = express();
 
@@ -35,6 +36,7 @@ app.use('/pieces', pieces);
 app.use('/auth', auth);
 app.use('/tokens', tokens);
 app.use('/users', users);
+app.use('/units', units);
 
 // catch 404 and forward to error handler
 app.use("/", function(req, res) {
@@ -51,7 +53,8 @@ app.use(function(req, res, next) {
 app.use(function(err, req, res, next) {
     console.log(err);
     console.log(err.message);
-    res.sendStatus(err.status || 500);
+    res.status(err.status || 500);
+    res.send(err.message);
 });
 
 module.exports = app;
