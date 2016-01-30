@@ -112,10 +112,10 @@ router.put('/removeUser', function(req, res, next) {
   })
 })
 
-router.put('/assignJob', function(req, res, next) {
+router.put('/assignRole', function(req, res, next) {
   var userID = req.body.user;
   var unitID = req.body.unit;
-  var job    = req.body.job;
+  var role   = req.body.role;
 
   authutils.ensure_group(req.get('token'), 1).then(function() {
     User.findById(userID).then(user => {
@@ -123,19 +123,19 @@ router.put('/assignJob', function(req, res, next) {
         next(new Error('該使用者並非於該單位任職。'))
       } else {
         Unit.findById(unitID).then(unit => {
-          if (job == 'manager') {
+          if (role == 'manager') {
             if (unit.manager) {
               next(new Error('該職位已經有人任職。'));
             } else {
               unit.update({manager: userID}).then(() => res.sendStatus(200)).error(next);
             }
-          } else if (job == 'docsControl') {
+          } else if (role == 'docsControl') {
             if (unit.docsControl) {
               next(new Error('該職位已經有人任職。'));
             } else {
               unit.update({docsControl: userID}).then(() => res.sendStatus(200)).error(next);
             }
-          } else if (job == 'agents') {
+          } else if (role == 'agent') {
             if (unit.agents.indexOf(userID) >= 0) {
               next(new Error('該人員已經任職此職位。'));
             } else {
@@ -149,26 +149,26 @@ router.put('/assignJob', function(req, res, next) {
   })
 })
 
-router.put('/deassignJob', function(req, res, next) {
+router.put('/deassignRole', function(req, res, next) {
   var userID = req.body.user;
   var unitID = req.body.unit;
-  var job    = req.body.job;
+  var role   = req.body.role;
 
   authutils.ensure_group(req.get('token'), 1).then(function() {
     Unit.findById(unitID).then(unit => {
-      if (job == 'manager') {
+      if (role == 'manager') {
         if (unit.manager != userID) {
           next(new Error('該職位並非由此人員任職。'));
         } else {
           unit.update({manager: undefined}).then(() => res.sendStatus(200)).error(next);
         }
-      } else if (job == 'docsControl') {
+      } else if (role == 'docsControl') {
         if (unit.docsControl != userID) {
           next(new Error('該職位並非由此人員任職。'));
         } else {
           unit.update({docsControl: undefined}).then(() => res.sendStatus(200)).error(next);
         }
-      } else if (job == 'agents') {
+      } else if (role == 'agent') {
         if (unit.agents.indexOf(userID) < 0) {
           next(new Error('該職位並非由此人員任職。'));
         } else {
