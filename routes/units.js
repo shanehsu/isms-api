@@ -200,8 +200,12 @@ router.put('/:id', function(req, res, next) {
     req.body.agents = undefined;
 
     authutils.ensure_group(req.get('token'), 1).then(function() {
+
         Unit.findByIdAndUpdate(req.params.id, {
-            $set: req.body
+            $set: {
+              name: req.body.name,
+              identifier: req.body.identifier
+            }
         }, {
             "new": true
         }).then(function(doc) {
@@ -211,13 +215,19 @@ router.put('/:id', function(req, res, next) {
 });
 
 router.delete('/:id', function(req, res, next) {
-    authutils.ensure_group(req.get('token'), 1).then(function() {
+  authutils.ensure_group(req.get('token'), 1).then(function() {
+    Unit.findById(req.params.id).then(unit => {
+      if (unit.parentUnit | unit.childUnits.length > 0) {
+        next(new Error('該單位有母單位或是子單位不能刪除！'))
+      } else {
         Unit.findByIdAndRemove(req.params.id, {
             $set: req.body
         }).then(function(doc) {
             res.sendStatus(200);
-        }).catch(next);
-    }).catch(next);
+        }).catch(next)
+      }
+    }).catch(next)
+  }).catch(next)
 });
 
 function removeParent(childID) {
