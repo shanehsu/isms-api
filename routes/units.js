@@ -14,6 +14,14 @@ router.get('/', function(req, res, next) {
     }).catch(next);
 });
 
+router.get('/freeUnits', function(req, res, next) {
+    authutils.ensure_group(req.get('token'), 1).then(function() {
+        Unit.find({parentUnit: undefined}).then(function(units) {
+            res.json(units.map(unit => unit.id));
+        }).catch(next);
+    }).catch(next);
+});
+
 router.post('/', function(req, res, next) {
     authutils.ensure_group(req.get('token'), 1).then(function() {
         var newUnit = new Unit(req.body);
