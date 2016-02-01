@@ -37,6 +37,9 @@ router.put('/relateParent', function(req, res, next) {
   var childID  = req.body.child;
 
   authutils.ensure_group(req.get('token'), 1).then(function() {
+    if (parentID == childID) {
+      next(new Error('不能將自己設為自己的母單位。'))
+    }
     removeParent(childID).then(function() {
       Unit.findByIdAndUpdate(parentID, {
         $push: {
