@@ -219,11 +219,19 @@ router.delete('/:id', function(req, res, next) {
     Unit.findById(req.params.id).then(unit => {
       if (unit.parentUnit | unit.childUnits.length > 0) {
         next(new Error('該單位有母單位或是子單位不能刪除！'))
+      } else if (unit.agents.length > 0 || unit.manager || unit.docsControl) {
+        next(new Error('該單位有角色不能刪除！'))
       } else {
-        Unit.findByIdAndRemove(req.params.id, {
-            $set: req.body
-        }).then(function(doc) {
-            res.sendStatus(200);
+        User.find{unit: req.params.id}.then(users => {
+          if (users.length > 0) {
+            next(new Error('仍然有使用者屬於該單位，不能刪除！'))
+          } else {
+            Unit.findByIdAndRemove(req.params.id, {
+                $set: req.body
+            }).then(function(doc) {
+                res.sendStatus(200);
+            }).catch(next)
+          }
         }).catch(next)
       }
     }).catch(next)
