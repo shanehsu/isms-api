@@ -180,6 +180,8 @@ router.put('/deassignRole', function(req, res, next) {
           unit.update({docsControl: undefined}).then(() => res.sendStatus(200)).error(next);
         }
       } else if (role == 'agent') {
+        console.log(userID);
+        console.log(unit.agents);
         if (unit.agents.indexOf(userID) < 0) {
           next(new Error('該職位並非由此人員任職。'));
         } else {
@@ -233,7 +235,7 @@ router.delete('/:id', function(req, res, next) {
       } else if (unit.agents.length > 0 || unit.manager || unit.docsControl) {
         next(new Error('該單位有角色不能刪除！'))
       } else {
-        User.find{unit: req.params.id}.then(users => {
+        User.find({unit: req.params.id}).then(users => {
           if (users.length > 0) {
             next(new Error('仍然有使用者屬於該單位，不能刪除！'))
           } else {
