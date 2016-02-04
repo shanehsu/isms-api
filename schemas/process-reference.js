@@ -8,7 +8,8 @@ var Schema = mongoose.Schema;
 var ProcessReferenceSchema = new Schema({
     documentID: String, // 文件 ID, "IS-A-001"
     revision: Number,
-    published: Date
+    published: Date,
+    blob: String
 });
 
 module.exports = ProcessReferenceSchema;
