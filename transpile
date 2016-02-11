@@ -1,8 +1,0 @@
-#!/bin/bash
-
-# Transpile
-npm run tsc ./server.ts
-
-# Run
-
-# node ./distribution/server.js

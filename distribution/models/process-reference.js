@@ -42,8 +42,6 @@ exports.ProcessReferenceSchema = new mongoose.Schema({
         required: false
     },
     // 相關表單
-    // 關係到某一個表單的某一個版本
-    // 在管理介面時，只能對應到該表單最新的版本！
     forms: {
         type: [ObjectId],
         required: false

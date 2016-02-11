@@ -4,13 +4,12 @@
   "private": true,
   "scripts": {
     "tsc": "tsc",
-    "start": "DEBUG=isms_api node ./server.js"
+    "start": "tsc; DEBUG=* node ./distribution/server.js"
   },
   "dependencies": {
     "body-parser": "~1.13.2",
     "debug": "~2.2.0",
     "express": "~4.13.1",
-    "jsonwebtoken": "^5.0.4",
     "mongoose": "^4.4.2",
     "morgan": "~1.6.1",
     "typescript": "^1.7.5",

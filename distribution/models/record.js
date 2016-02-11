@@ -19,7 +19,8 @@ exports.RecordSchema = new mongoose.Schema({
     // 對應到填寫日
     created: {
         type: Date,
-        required: false
+        required: true,
+        default: new Date()
     },
     // 對應到流水號
     serial: {
