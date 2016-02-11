@@ -20,7 +20,21 @@ var recordSchema = new Schema({
     serial: Number,
 
     // 實際資料
-    data: {}
+    data: String
+    /*
+    ,
+    get: function(metadata: string): any {
+      try {
+        return JSON.parse(metadata)
+      }
+      finally { 
+        return metadata
+      }
+    },
+    set: function(metadata: any): string {
+      return JSON.stringify(metadata)
+    }
+    */
 });
 
 module.exports = recordSchema;
