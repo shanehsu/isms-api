@@ -4,11 +4,11 @@ import mongoose = require('mongoose')
 import Field    = require('./field')
 
 export interface FormRevisionInterface extends mongoose.Document {
-  revision: number,
-  sinigtures: number,
-  group: number,
-  secrecyLevel: number,
-  template: string,
+  revision: number
+  sinigtures: number
+  group: number
+  secrecyLevel: number
+  template: string
   fields: [Field.FieldInterface]
 }
 
