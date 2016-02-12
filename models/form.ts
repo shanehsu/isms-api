@@ -5,11 +5,16 @@ import FormRevision = require('./form-revision')
 
 export interface FormInterface extends mongoose.Document {
   identifier?: string
+  name?: string
   revisions?: [FormRevision.FormRevisionInterface]
 }
 
 export const FormSchema = new mongoose.Schema ({
   identifier: {
+    type: String,
+    required: false
+  },
+  name: {
     type: String,
     required: false
   },

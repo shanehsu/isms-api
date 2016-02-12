@@ -102,6 +102,10 @@ router.put('/:id', (req: Request, res: Response, next: Next) => {
   
   const id: string    = req.params.id
   
+  // 刪除不該透過這個方法更新的資訊
+  delete req.body.unit
+  delete req.body.tokens
+  
   auth.ensure_group(token, group).then(() => {
     User.findByIdAndUpdate(id, {
       $set: req.body
