@@ -103,6 +103,7 @@ router.get('/:id', (req: Request, res: Response, next: Next) => {
       let payload: any = {
         _id: form._id,
         identifier: form.identifier,
+        name: form.name,
         revisions: ids
       }
       
