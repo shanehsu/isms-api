@@ -24,7 +24,14 @@ router.get('/:formID/:revisionID', (req, res, next) => {
             }
             else {
                 let revision = filtered[0];
-                let payload = revision;
+                let payload = {
+                    _id: revision._id,
+                    revision: revision.revision,
+                    signatures: revision.signatures,
+                    group: revision.group,
+                    secrecyLevel: revision.secrecyLevel,
+                    template: revision.template
+                };
                 if (revision.fields) {
                     payload.fields = revision.fields.map(field => field.id);
                 }
@@ -55,7 +62,7 @@ router.post('/:formID', (req, res, next) => {
             if (form.revisions && form.revisions.length > 0) {
                 let latestRevision = form.revisions[form.revisions.length - 1];
                 let revision = latestRevision.revision;
-                nextRevision = revision + 0.1;
+                nextRevision = Math.round((revision + 0.1) * 10) / 10;
             }
             models_1.Form.findByIdAndUpdate(formID, {
                 '$push': {
@@ -95,7 +102,7 @@ router.put('/:formID/:revisionID', (req, res, next) => {
             // 開始進行 Document Merging
             if (req.body.revision)
                 revision.revision = req.body.revision;
-            if (req.body.signatures)
+            if (req.body.signatures != undefined)
                 revision.signatures = req.body.signatures;
             if (req.body.group)
                 revision.group = req.body.group;

@@ -140,10 +140,10 @@ router.put('/:formID/:revisionID/:fieldID', (req: Request, res: Response, next: 
       let field = fields[fieldIndex]
       
       // 進行更新
-      if (req.body.name) field.name = req.body.name
-      if (req.body.type) field.type = req.body.type
-      if (req.body.hint) field.hint = req.body.hint
-      if (req.body.metadata) field.metadata = req.body.metadata
+      if (req.body.name != undefined) field.name = req.body.name
+      if (req.body.type != undefined) field.type = req.body.type
+      if (req.body.hint != undefined) field.hint = req.body.hint
+      if (req.body.metadata != undefined) field.metadata = req.body.metadata
       
       console.dir(field)
       

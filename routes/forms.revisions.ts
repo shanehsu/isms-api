@@ -126,11 +126,11 @@ router.put('/:formID/:revisionID', (req: Request, res: Response, next: Next) => 
       let revision = form.revisions[index]
       
       // 開始進行 Document Merging
-      if (req.body.revision) revision.revision = req.body.revision
-      if (req.body.signatures) revision.signatures = req.body.signatures
-      if (req.body.group) revision.group = req.body.group
-      if (req.body.secrecyLevel) revision.secrecyLevel = req.body.secrecyLevel
-      if (req.body.template) revision.template = req.body.template
+      if (req.body.revision != undefined) revision.revision = req.body.revision
+      if (req.body.signatures != undefined) revision.signatures = req.body.signatures
+      if (req.body.group != undefined) revision.group = req.body.group
+      if (req.body.secrecyLevel != undefined) revision.secrecyLevel = req.body.secrecyLevel
+      if (req.body.template != undefined) revision.template = req.body.template
       
       form.markModified('form.revisions.' + index)
       

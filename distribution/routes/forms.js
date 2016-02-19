@@ -81,9 +81,12 @@ router.get('/:id', (req, res, next) => {
                     .map(revision => revision.id);
             }
             // 取代原本資料
-            let payload = form;
-            payload.revisions = ids;
-            console.dir(payload);
+            let payload = {
+                _id: form._id,
+                identifier: form.identifier,
+                name: form.name,
+                revisions: ids
+            };
             res.json(payload);
         }).catch(next);
     }).catch(next);
@@ -114,8 +117,15 @@ router.delete('/:id', (req, res, next) => {
     const group = 1;
     const id = req.params.id;
     auth.ensure_group(token, group).then(() => {
-        models_1.Form.findOneAndRemove(id).exec()
-            .then(() => res.sendStatus(200)).catch(next);
+        models_1.Form.findById(id).exec().then(form => {
+            if (!form.revisions || form.revisions.length == 0) {
+                models_1.Form.findByIdAndRemove(id).exec()
+                    .then(() => res.sendStatus(200)).catch(next);
+            }
+            else {
+                next(new Error('表單含有表單版本，無法刪除。'));
+            }
+        }).catch(next);
     }).catch(next);
 });
 module.exports = router;
