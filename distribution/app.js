@@ -10,6 +10,7 @@ var auth = require('./routes/auth');
 var tokens = require('./routes/tokens');
 var users = require('./routes/users');
 var units = require('./routes/units');
+var forms = require('./routes/forms');
 let app = express();
 app.use(logger('dev'));
 app.use(bodyParser.json());
@@ -35,6 +36,7 @@ app.use('/auth', auth);
 app.use('/tokens', tokens);
 app.use('/users', users);
 app.use('/units', units);
+app.use('/forms', forms);
 // 將 404 當作 500 處理
 // 在這裡相當合適
 app.use((req, res, next) => {

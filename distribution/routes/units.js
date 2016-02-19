@@ -370,11 +370,14 @@ router.put('/:id', (req, res, next) => {
     const group = 1;
     const id = req.params.id;
     auth.ensure_group(token, group).then(() => {
+        // 刪除不應該用這個方法更新的資訊
+        delete req.body.parentUnit;
+        delete req.body.childUnits;
+        delete req.body.manager;
+        delete req.body.docsControl;
+        delete req.body.agents;
         models_1.Unit.findByIdAndUpdate(id, {
-            $set: {
-                name: req.body.name,
-                identifier: req.body.identifier
-            }
+            $set: req.body
         }).exec().then(doc => res.sendStatus(200)).catch(next);
     }).catch(next);
 });

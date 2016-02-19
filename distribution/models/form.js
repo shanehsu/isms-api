@@ -6,8 +6,12 @@ exports.FormSchema = new mongoose.Schema({
         type: String,
         required: false
     },
+    name: {
+        type: String,
+        required: false
+    },
     // 各個版本
-    revesions: {
+    revisions: {
         type: [FormRevision.FormRevisionSchema],
         required: false
     }

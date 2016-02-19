@@ -19,7 +19,7 @@ export const FormSchema = new mongoose.Schema ({
     required: false
   },
   // 各個版本
-  revesions: {
+  revisions: {
     type: [FormRevision.FormRevisionSchema],
     required: false
   }

@@ -10,17 +10,20 @@ exports.FormRevisionSchema = new mongoose.Schema({
     // 簽核人數
     signigtures: {
         type: Number,
-        required: true
+        required: true,
+        default: 1
     },
     // 填表群組
     group: {
         type: Number,
-        required: true
+        required: true,
+        default: 3
     },
     // 機密等級
     secrecyLevel: {
         type: Number,
-        required: true
+        required: true,
+        default: 3
     },
     // 樣板
     template: {

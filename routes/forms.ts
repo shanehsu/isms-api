@@ -14,9 +14,13 @@ type Next     = express.NextFunction
 
 var router = express.Router()
 
+// 子路由器
+router.use('/revisions', require('./forms.revisions'))
+
 /**
  * 路徑清單
  * GET    /forms
+ * GET    /forms/:id
  * POST   /forms
  * PUT    /forms/:id
  * DELETE /forms/:id
@@ -31,15 +35,47 @@ var router = express.Router()
 router.get('/', (req: Request, res: Response, next: Next) => {
   const token: string = req.get('token')
   auth.return_user(token).then(user => {
+    
     let group = user.group
-    Form.find({
-      $where: function() {
-        var length = this.revisions.length
-        return this.revisions[length - 1].group <= group
-      }
-    }).select('identifier name').exec()
-      .then(forms => res.json(forms))
+    
+    Form.find({}).exec()
+      .then(forms => {
+        let payload = forms.filter(form => {
+          if (group == 1) {
+            return true
+          } else {
+            if (!form.revisions || form.revisions.length == 0) {
+              return false
+            } else {
+              return form.revisions[form.revisions.length - 1].group <= group
+            }
+          }
+        }).map(form => {
+          return {
+            _id: form.id, 
+            name: form.name,
+            identifier: form.identifier
+          }
+        })
+        
+        res.json(payload)
+      })
       .catch(next)
+  }).catch(next)
+})
+
+/**
+ * POST /forms
+ * 
+ * 建立一個空的表單資源
+ */
+router.post('/', (req: Request, res: Response, next: Next) => {
+  const token: string = req.get('token')
+  const group: number = 1
+  
+  auth.ensure_group(token, group).then(() => {
+    Form.create({}).then(form => res.status(201).send(form.id))
+                   .catch(next)
   }).catch(next)
 })
 
@@ -56,26 +92,19 @@ router.get('/:id', (req: Request, res: Response, next: Next) => {
   auth.return_user(token).then(user => {
     let user_group = user.group
     Form.findById(id).exec().then(form => {
-      let form_group = form.revisions[form.revisions.length - 1].group
-      if (user_group >= form_group) {
-        res.json(form)
+      // 使用者應該可以看到的 Revision => ID
+      let ids: string[] = []
+      if (form.revisions) {
+        ids = form.revisions.filter(revision => revision.group <= user.group)
+                            .map(revision => revision.id)
       }
+      
+      // 取代原本資料
+      let payload: any = form
+      payload.revisions = ids
+      
+      res.json(payload)
     }).catch(next)
-  }).catch(next)
-})
-
-/**
- * POST /forms
- * 
- * 建立一個空的表單資源
- */
-router.post('/', (req: Request, res: Response, next: Next) => {
-  const token: string = req.get('token')
-  const group: number = 1
-  
-  auth.ensure_group(token, group).then(() => {
-    Form.create({}).then(form => res.status(201).send(form.id))
-                   .catch(next)
   }).catch(next)
 })
 
@@ -118,14 +147,3 @@ router.delete('/:id', (req: Request, res: Response, next: Next) => {
 })
 
 module.exports = router
-
-/*
-
-== GET ==
-
-router.get('/', (req: Request, res: Response, next: Next) => {
-  const token: string = req.get('token')
-  
-})
-
-*/
