@@ -5,7 +5,7 @@ import Field    = require('./field')
 
 export interface FormRevisionInterface extends mongoose.Document {
   revision: number
-  signigtures: number
+  signatures: number
   group: number
   secrecyLevel: number
   template: string
@@ -19,7 +19,7 @@ export const FormRevisionSchema = new mongoose.Schema ({
     required: true
   },
   // 簽核人數
-  signigtures: {
+  signatures: {
     type: Number,
     required: true,
     default: 1
