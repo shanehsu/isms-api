@@ -100,8 +100,11 @@ router.get('/:id', (req: Request, res: Response, next: Next) => {
       }
       
       // 取代原本資料
-      let payload: any = form
-      payload.revisions = ids
+      let payload: any = {
+        _id: form._id,
+        identifier: form.identifier,
+        revisions: ids
+      }
       
       res.json(payload)
     }).catch(next)

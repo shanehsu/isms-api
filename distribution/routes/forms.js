@@ -77,12 +77,13 @@ router.get('/:id', (req, res, next) => {
             // 使用者應該可以看到的 Revision => ID
             let ids = [];
             if (form.revisions) {
-                ids = form.revisions.filter(revision => revision.group <= user.group)
+                ids = form.revisions.filter(revision => revision.group >= user.group)
                     .map(revision => revision.id);
             }
             // 取代原本資料
             let payload = form;
             payload.revisions = ids;
+            console.dir(payload);
             res.json(payload);
         }).catch(next);
     }).catch(next);

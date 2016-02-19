@@ -38,7 +38,14 @@ router.get('/:formID/:revisionID', (req: Request, res: Response, next: Next) => 
         next(new Error('在表單內找不到此表單版本。'))
       } else {
         let revision = filtered[0]
-        let payload: any = revision
+        
+        let payload: any = {
+          revision: revision.revision,
+          signatures: revision.signatures,
+          group: revision.group,
+          secrecyLevel: revision.secrecyLevel,
+          template: revision.template
+        }
         
         if (revision.fields) {
           payload.fields = revision.fields.map(field => field.id) 

@@ -8,7 +8,7 @@ exports.FormRevisionSchema = new mongoose.Schema({
         required: true
     },
     // 簽核人數
-    signigtures: {
+    signatures: {
         type: Number,
         required: true,
         default: 1

@@ -64,7 +64,7 @@ exports.FieldSchema = new mongoose.Schema({
  *   maxLength: Number, (50)
  * }
  *
- * 長文字：op
+ * 長文字：
  * type: 'longText'
  * metadata: {
  *   minLength: Number, (1)

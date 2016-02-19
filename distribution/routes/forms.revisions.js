@@ -95,8 +95,8 @@ router.put('/:formID/:revisionID', (req, res, next) => {
             // 開始進行 Document Merging
             if (req.body.revision)
                 revision.revision = req.body.revision;
-            if (req.body.signigtures)
-                revision.signigtures = req.body.signigtures;
+            if (req.body.signatures)
+                revision.signatures = req.body.signatures;
             if (req.body.group)
                 revision.group = req.body.group;
             if (req.body.secrecyLevel)
