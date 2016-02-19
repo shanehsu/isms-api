@@ -83,7 +83,7 @@ router.post('/:formID', (req: Request, res: Response, next: Next) => {
       if (form.revisions && form.revisions.length > 0) {
         let latestRevision = form.revisions[form.revisions.length - 1]
         let revision = latestRevision.revision
-        nextRevision = revision + 0.1
+        nextRevision = Math.round((revision + 0.1) * 10) / 10
       }
       
       Form.findByIdAndUpdate(formID, {
