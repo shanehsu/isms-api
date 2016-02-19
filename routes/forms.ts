@@ -145,8 +145,14 @@ router.delete('/:id', (req: Request, res: Response, next: Next) => {
   const id: string    = req.params.id
   
   auth.ensure_group(token, group).then(() => {
-    Form.findOneAndRemove(id).exec()
-        .then(() => res.sendStatus(200)).catch(next)
+    Form.findById(id).exec().then(form => {
+      if (!form.revisions || form.revisions.length == 0) {
+        Form.findByIdAndRemove(id).exec()
+            .then(() => res.sendStatus(200)).catch(next)
+      } else {
+        next(new Error('表單含有表單版本，無法刪除。'))
+      }
+    }).catch(next)
   }).catch(next)
 })
 
