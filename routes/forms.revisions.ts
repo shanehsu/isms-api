@@ -40,6 +40,7 @@ router.get('/:formID/:revisionID', (req: Request, res: Response, next: Next) => 
         let revision = filtered[0]
         
         let payload: any = {
+          _id: revision._id,
           revision: revision.revision,
           signatures: revision.signatures,
           group: revision.group,
