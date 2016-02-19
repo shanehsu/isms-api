@@ -95,7 +95,7 @@ router.get('/:id', (req: Request, res: Response, next: Next) => {
       // 使用者應該可以看到的 Revision => ID
       let ids: string[] = []
       if (form.revisions) {
-        ids = form.revisions.filter(revision => revision.group <= user.group)
+        ids = form.revisions.filter(revision => revision.group >= user.group)
                             .map(revision => revision.id)
       }
       
