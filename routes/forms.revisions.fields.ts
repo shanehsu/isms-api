@@ -143,7 +143,13 @@ router.put('/:formID/:revisionID/:fieldID', (req: Request, res: Response, next: 
       if (req.body.name != undefined) field.name = req.body.name
       if (req.body.type != undefined) field.type = req.body.type
       if (req.body.hint != undefined) field.hint = req.body.hint
-      if (req.body.metadata != undefined) field.metadata = req.body.metadata
+      if (req.body.metadata != undefined) {
+        try {
+          field.metadata = JSON.parse(req.body.metadata)
+        } catch (e) {
+          next(e)
+        }
+      }
       
       console.dir(field)
       
