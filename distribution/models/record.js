@@ -8,7 +8,7 @@ exports.RecordSchema = new mongoose.Schema({
         required: false
     },
     formRevision: {
-        type: Number,
+        type: ObjectId,
         required: false
     },
     // 對應到一個單位
@@ -45,7 +45,8 @@ exports.RecordSchema = new mongoose.Schema({
     // 表單資料
     data: {
         type: String,
-        required: false,
+        default: '{}',
+        required: true,
         get: function (metadata) {
             return JSON.parse(metadata);
         },

@@ -115,14 +115,20 @@ router.put('/:formID/:revisionID/:fieldID', (req, res, next) => {
             }
             let field = fields[fieldIndex];
             // 進行更新
-            if (req.body.name)
+            if (req.body.name != undefined)
                 field.name = req.body.name;
-            if (req.body.type)
+            if (req.body.type != undefined)
                 field.type = req.body.type;
-            if (req.body.hint)
+            if (req.body.hint != undefined)
                 field.hint = req.body.hint;
-            if (req.body.metadata)
-                field.metadata = req.body.metadata;
+            if (req.body.metadata != undefined) {
+                try {
+                    field.metadata = JSON.parse(req.body.metadata);
+                }
+                catch (e) {
+                    next(e);
+                }
+            }
             console.dir(field);
             form.markModified('revisions.' + revisionIndex + '.fields.' + fieldIndex);
             form.save(err => {
