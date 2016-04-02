@@ -14,6 +14,7 @@ export interface RecordInterface extends mongoose.Document {
   owner?: string
   signatures?: [{
     personnel: string,
+    timestamp: Date,
     signed: boolean
   }],
   data?: any
@@ -60,6 +61,7 @@ export const RecordSchema = new mongoose.Schema ({
     type: [
       {
         personnel: ObjectId,
+        timestamp: Date,
         signed: Boolean
       }
     ],
