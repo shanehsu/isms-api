@@ -1,6 +1,6 @@
 'use strict';
-var express = require('express');
-var auth = require('../util/auth');
+const express = require('express');
+const auth = require('../util/auth');
 var router = express.Router();
 /**
  * GET /tokens

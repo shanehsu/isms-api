@@ -1,6 +1,6 @@
 'use strict';
-var mongoose = require('mongoose');
-var FormRevision = require('./form-revision');
+const mongoose = require('mongoose');
+const FormRevision = require('./form-revision');
 exports.FormSchema = new mongoose.Schema({
     identifier: {
         type: String,

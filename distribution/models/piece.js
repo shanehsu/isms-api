@@ -1,5 +1,5 @@
 'use strict';
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 exports.PieceSchema = new mongoose.Schema({
     date: {
         type: Date,

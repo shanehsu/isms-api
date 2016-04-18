@@ -1,5 +1,5 @@
 'use strict';
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 const ObjectId = mongoose.Schema.Types.ObjectId;
 exports.ProcessReferenceSchema = new mongoose.Schema({
     // 文件名稱

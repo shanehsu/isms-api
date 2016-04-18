@@ -1,5 +1,5 @@
 'use strict';
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 const ObjectId = mongoose.Schema.Types.ObjectId;
 exports.FieldSchema = new mongoose.Schema({
     name: {
@@ -13,7 +13,7 @@ exports.FieldSchema = new mongoose.Schema({
         required: true,
         validate: {
             validator: function (value) {
-                return ['shortText', 'longText', 'date', 'options', 'table'].indexOf(value) >= 0;
+                return ['shortText', 'longText', 'date', 'time', 'options', 'table'].indexOf(value) >= 0;
             },
             message: '{VALUE} is not a valid field type.'
         }
@@ -79,6 +79,12 @@ exports.FieldSchema = new mongoose.Schema({
  * }
  *
  * (日期格式：YYYY-MM-DD 或是 NOW)
+ *
+ * 時間：
+ * type: 'time'
+ *
+ * 時間沒有可用的選項！
+ * metadata: {}
  *
  * 選擇：
  *

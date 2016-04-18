@@ -34,7 +34,7 @@ export const FormRevisionSchema = new mongoose.Schema ({
   secrecyLevel: {
     type: Number,
     required: true,
-    default: 3
+    default: 4
   },
   // 樣板
   template: {

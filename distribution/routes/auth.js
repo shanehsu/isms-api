@@ -1,7 +1,7 @@
 'use strict';
-var express = require('express');
-var crypto = require('crypto');
-var models_1 = require('./../libs/models');
+const express = require('express');
+const crypto = require('crypto');
+const models_1 = require('./../libs/models');
 var router = express.Router();
 /**
  * POST /login

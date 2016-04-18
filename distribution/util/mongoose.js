@@ -1,4 +1,5 @@
-var mongoose = require('mongoose');
+"use strict";
+const mongoose = require('mongoose');
 const db_uri = 'mongodb://isms:isms@ds053964.mongolab.com:53964/isms';
 mongoose.connect(db_uri);
 // 成功連線的訊息

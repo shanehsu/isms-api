@@ -1,7 +1,7 @@
 'use strict';
-var express = require('express');
-var auth = require('./../util/auth');
-var models_1 = require('./../libs/models');
+const express = require('express');
+const auth = require('./../util/auth');
+const models_1 = require('./../libs/models');
 // 路由器前置路徑 /forms/revisions/fields
 var router = express.Router();
 /**

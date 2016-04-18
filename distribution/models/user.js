@@ -1,6 +1,6 @@
 'use strict';
-var mongoose = require('mongoose');
-var Token = require('./token');
+const mongoose = require('mongoose');
+const Token = require('./token');
 exports.UserSchema = new mongoose.Schema({
     email: {
         type: String,

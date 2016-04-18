@@ -23,7 +23,7 @@ export const FieldSchema = new mongoose.Schema ({
     required: true,
     validate: {
       validator: function(value) {
-        return ['shortText', 'longText', 'date', 'options', 'table'].indexOf(value) >= 0
+        return ['shortText', 'longText', 'date', 'time', 'options', 'table'].indexOf(value) >= 0
       },
       message: '{VALUE} is not a valid field type.'
     }
@@ -89,6 +89,12 @@ export const FieldSchema = new mongoose.Schema ({
  * }
  * 
  * (日期格式：YYYY-MM-DD 或是 NOW)
+ * 
+ * 時間：
+ * type: 'time'
+ * 
+ * 時間沒有可用的選項！
+ * metadata: {}
  * 
  * 選擇：
  * 
