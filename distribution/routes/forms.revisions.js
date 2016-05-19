@@ -30,7 +30,8 @@ router.get('/:formID/:revisionID', (req, res, next) => {
                     signatures: revision.signatures,
                     group: revision.group,
                     secrecyLevel: revision.secrecyLevel,
-                    template: revision.template
+                    template: revision.template,
+                    officerSignature: revision.officerSignature
                 };
                 if (revision.fields) {
                     payload.fields = revision.fields.map(field => field.id);
@@ -104,6 +105,8 @@ router.put('/:formID/:revisionID', (req, res, next) => {
                 revision.revision = req.body.revision;
             if (req.body.signatures != undefined)
                 revision.signatures = req.body.signatures;
+            if (req.body.officerSignature != undefined)
+                revision.officerSignature = req.body.officerSignature;
             if (req.body.group != undefined)
                 revision.group = req.body.group;
             if (req.body.secrecyLevel != undefined)

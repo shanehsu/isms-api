@@ -128,6 +128,7 @@ router.post('/:formID', (req, res, next) => {
                         let signaturesArray = signaturesChain.map(element => {
                             return {
                                 personnel: element,
+                                timestamp: new Date(),
                                 signed: false
                             };
                         });

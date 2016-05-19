@@ -123,5 +123,5 @@ exports.FieldSchema = new mongoose.Schema({
  *   ]
  * }
  *
- */ 
+ */
 //# sourceMappingURL=field.js.map

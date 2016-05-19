@@ -45,7 +45,8 @@ router.get('/:formID/:revisionID', (req: Request, res: Response, next: Next) => 
           signatures: revision.signatures,
           group: revision.group,
           secrecyLevel: revision.secrecyLevel,
-          template: revision.template
+          template: revision.template,
+          officerSignature: revision.officerSignature
         }
         
         if (revision.fields) {
@@ -128,6 +129,7 @@ router.put('/:formID/:revisionID', (req: Request, res: Response, next: Next) => 
       // 開始進行 Document Merging
       if (req.body.revision != undefined) revision.revision = req.body.revision
       if (req.body.signatures != undefined) revision.signatures = req.body.signatures
+      if (req.body.officerSignature != undefined) revision.officerSignature = req.body.officerSignature
       if (req.body.group != undefined) revision.group = req.body.group
       if (req.body.secrecyLevel != undefined) revision.secrecyLevel = req.body.secrecyLevel
       if (req.body.template != undefined) revision.template = req.body.template

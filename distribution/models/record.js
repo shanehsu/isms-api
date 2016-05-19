@@ -37,6 +37,7 @@ exports.RecordSchema = new mongoose.Schema({
         type: [
             {
                 personnel: ObjectId,
+                timestamp: Date,
                 signed: Boolean
             }
         ],

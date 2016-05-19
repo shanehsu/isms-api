@@ -12,30 +12,37 @@ type Next     = express.NextFunction
 
 var  router   = express.Router()
 
-function signatureList(unitID: string, signatures: number): Promise<string[]> {
-  if (signatures < 1) {
+function signatureList(unitID: string, signatures: boolean, officer: boolean): Promise<string[]> {
+  if (!signatures) {
+    // 不需要簽核
     return Promise.resolve([])
-  }
-  return new Promise<string[]>((resolve, reject) => {
-    Unit.findById(unitID).exec().then(unit => {
-      if (!unit.manager) {
-        reject(new Error('簽核鏈中有單位沒有主管，無法建立記錄。'))
-      } else {
-        let thisManager = unit.manager
-        if (signatures == 1) {
-          resolve([thisManager])
+  } else {
+    return new Promise<string[]>((resolve, reject) => {
+      Unit.findById(unitID).exec().then(unit => {
+        // 檢察單位是否有主管（若需要的話）
+        if (officer && !unit.manager) {
+          reject(new Error('單位沒有主管，無法建立紀錄。'))
         } else {
-          if (!unit.parentUnit) {
-            reject(new Error('簽核鏈中有單位沒有母單位，無法建立記錄。'))
-          } else {
-            signatureList(unit.parentUnit, signatures - 1).then(nextManagers => {
-              resolve([thisManager, ...nextManagers])
+          // 若有母單位，繼續搜尋
+          if (unit.parentUnit) {
+            signatureList(unit.parentUnit, true, true).then(nexts => {
+              if (officer) {
+                resolve([unit.manager, ...nexts])
+              } else {
+                resolve(nexts)
+              }
             }).catch(reject)
+          } else {
+            if (officer) {
+              resolve([unit.manager])
+            } else {
+              resolve([])
+            }
           }
         }
-      }
-    }).catch(reject)
-  })
+      })
+    })
+  }
 }
 
 function allChildUnits(unitID: string): Promise<string[]> {
@@ -126,6 +133,7 @@ router.post('/:formID', (req: Request, res: Response, next: Next) => {
           return
         }
         
+        let officerSignature = form.revisions[form.revisions.length - 1].officerSignature
         let signatures = form.revisions[form.revisions.length - 1].signatures
         let revisionID = form.revisions[form.revisions.length - 1].id
         
@@ -136,13 +144,17 @@ router.post('/:formID', (req: Request, res: Response, next: Next) => {
             serial = records[0].serial + 1
           }
           
-          signatureList(unitID, signatures).then(chain => {
-            let signaturesChain = chain
+          signatureList(unitID, signatures, officerSignature).then(chain => {
+            // 把自己加進簽核鍊之中！
+            let signaturesChain = [userID, ...chain]
             let signaturesArray = signaturesChain.map(element => {return {
               personnel: element,
               timestamp: new Date(),
               signed: false
             }})
+            
+            // 自己送出表單時，視同進行簽名
+            signaturesArray[0].signed = true;
             
             Record.create({
               formID: formID,
