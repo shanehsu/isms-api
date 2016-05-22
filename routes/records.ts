@@ -113,6 +113,32 @@ router.get('/', (req: Request, res: Response, next: Next) => {
   }).catch(next) 
 })
 
+// 取得某一個表單的表單形狀
+router.get('/:formID/schema', (req: Request, res: Response, next: Next) => {
+  const token: string = req.get('token')
+  const formID = req.params.formID
+  
+  // 驗證使用者是否有資格填寫該表單
+  auth.return_user(token).then(user => {
+    // 取得使用者資料
+    // 現在只看使用者是否有足夠權限（群組資格）
+    
+    const userGroup = user.group
+    Form.findById(formID).exec().then(form => {
+      const latestFormRevision = form.revisions[form.revisions.length - 1]
+      const formGroup = latestFormRevision.group
+      
+      if (userGroup <= formGroup) {
+        // 使用者有足夠權限！
+        
+        res.json(latestFormRevision.fields)
+      } else {
+        next(new Error("權限不足。"))
+      }
+    }).catch(next)
+  })
+})
+
 router.post('/:formID', (req: Request, res: Response, next: Next) => {
   const token: string = req.get('token')
   const formID: string = req.params.formID
@@ -156,13 +182,17 @@ router.post('/:formID', (req: Request, res: Response, next: Next) => {
             // 自己送出表單時，視同進行簽名
             signaturesArray[0].signed = true;
             
+            // 表單資料
+            const formData = JSON.parse(req.body.data)
+            
             Record.create({
               formID: formID,
               formRevision: revisionID,
               owningUnit: unitID,
               serial: serial,
               owner: userID,
-              signatures: signaturesArray
+              signatures: signaturesArray,
+              data: formData
             }).then(record => res.send(record.id)).catch(next)
           }).catch(next)
         }).catch(next)

@@ -3,33 +3,42 @@ const express = require('express');
 const auth = require('./../util/auth');
 const models_1 = require('./../libs/models');
 var router = express.Router();
-function signatureList(unitID, signatures) {
-    if (signatures < 1) {
+function signatureList(unitID, signatures, officer) {
+    if (!signatures) {
+        // 不需要簽核
         return Promise.resolve([]);
     }
-    return new Promise((resolve, reject) => {
-        models_1.Unit.findById(unitID).exec().then(unit => {
-            if (!unit.manager) {
-                reject(new Error('簽核鏈中有單位沒有主管，無法建立記錄。'));
-            }
-            else {
-                let thisManager = unit.manager;
-                if (signatures == 1) {
-                    resolve([thisManager]);
+    else {
+        return new Promise((resolve, reject) => {
+            models_1.Unit.findById(unitID).exec().then(unit => {
+                // 檢察單位是否有主管（若需要的話）
+                if (officer && !unit.manager) {
+                    reject(new Error('單位沒有主管，無法建立紀錄。'));
                 }
                 else {
-                    if (!unit.parentUnit) {
-                        reject(new Error('簽核鏈中有單位沒有母單位，無法建立記錄。'));
-                    }
-                    else {
-                        signatureList(unit.parentUnit, signatures - 1).then(nextManagers => {
-                            resolve([thisManager, ...nextManagers]);
+                    // 若有母單位，繼續搜尋
+                    if (unit.parentUnit) {
+                        signatureList(unit.parentUnit, true, true).then(nexts => {
+                            if (officer) {
+                                resolve([unit.manager, ...nexts]);
+                            }
+                            else {
+                                resolve(nexts);
+                            }
                         }).catch(reject);
                     }
+                    else {
+                        if (officer) {
+                            resolve([unit.manager]);
+                        }
+                        else {
+                            resolve([]);
+                        }
+                    }
                 }
-            }
-        }).catch(reject);
-    });
+            });
+        });
+    }
 }
 function allChildUnits(unitID) {
     return new Promise((resolve, reject) => {
@@ -99,6 +108,28 @@ router.get('/', (req, res, next) => {
         }
     }).catch(next);
 });
+// 取得某一個表單的表單形狀
+router.get('/:formID/schema', (req, res, next) => {
+    const token = req.get('token');
+    const formID = req.params.formID;
+    // 驗證使用者是否有資格填寫該表單
+    auth.return_user(token).then(user => {
+        // 取得使用者資料
+        // 現在只看使用者是否有足夠權限（群組資格）
+        const userGroup = user.group;
+        models_1.Form.findById(formID).exec().then(form => {
+            const latestFormRevision = form.revisions[form.revisions.length - 1];
+            const formGroup = latestFormRevision.group;
+            if (userGroup <= formGroup) {
+                // 使用者有足夠權限！
+                res.json(latestFormRevision.fields);
+            }
+            else {
+                next(new Error("權限不足。"));
+            }
+        }).catch(next);
+    });
+});
 router.post('/:formID', (req, res, next) => {
     const token = req.get('token');
     const formID = req.params.formID;
@@ -115,6 +146,7 @@ router.post('/:formID', (req, res, next) => {
                     next(new Error('表單沒有可填寫的表單版本。'));
                     return;
                 }
+                let officerSignature = form.revisions[form.revisions.length - 1].officerSignature;
                 let signatures = form.revisions[form.revisions.length - 1].signatures;
                 let revisionID = form.revisions[form.revisions.length - 1].id;
                 models_1.Record.find({ owningUnit: unitID }).sort({ serial: 'ascending' })
@@ -123,8 +155,9 @@ router.post('/:formID', (req, res, next) => {
                     if (records.length == 1) {
                         serial = records[0].serial + 1;
                     }
-                    signatureList(unitID, signatures).then(chain => {
-                        let signaturesChain = chain;
+                    signatureList(unitID, signatures, officerSignature).then(chain => {
+                        // 把自己加進簽核鍊之中！
+                        let signaturesChain = [userID, ...chain];
                         let signaturesArray = signaturesChain.map(element => {
                             return {
                                 personnel: element,
@@ -132,13 +165,18 @@ router.post('/:formID', (req, res, next) => {
                                 signed: false
                             };
                         });
+                        // 自己送出表單時，視同進行簽名
+                        signaturesArray[0].signed = true;
+                        // 表單資料
+                        const formData = JSON.parse(req.body.data);
                         models_1.Record.create({
                             formID: formID,
                             formRevision: revisionID,
                             owningUnit: unitID,
                             serial: serial,
                             owner: userID,
-                            signatures: signaturesArray
+                            signatures: signaturesArray,
+                            data: formData
                         }).then(record => res.send(record.id)).catch(next);
                     }).catch(next);
                 }).catch(next);

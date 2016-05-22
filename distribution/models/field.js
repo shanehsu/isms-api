@@ -123,5 +123,10 @@ exports.FieldSchema = new mongoose.Schema({
  *   ]
  * }
  *
+ * 表格
+ * metadata: {
+ *   fields: []
+ * }
+ *
  */
 //# sourceMappingURL=field.js.map
