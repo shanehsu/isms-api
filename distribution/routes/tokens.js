@@ -1,6 +1,6 @@
 'use strict';
-const express = require('express');
-const auth = require('../util/auth');
+const express = require("express");
+const auth = require("../util/auth");
 var router = express.Router();
 /**
  * GET /tokens
@@ -14,25 +14,12 @@ router.get('/', (req, res, next) => {
         .catch(next);
 });
 /**
- * DEPRECATED
- *
  * POST /tokens/valid
  *
  * 回傳登入代幣是否有效。
  */
 router.post('/valid', (req, res) => {
     const token = req.body.token;
-    auth.validate_token(token)
-        .then(() => res.json({ valid: true }))
-        .catch(() => res.json({ valid: false }));
-});
-/**
- * GET /tokens/valid
- *
- * 回傳登入代幣是否有效。
- */
-router.post('/valid', (req, res) => {
-    const token = req.get('token');
     auth.validate_token(token)
         .then(() => res.json({ valid: true }))
         .catch(() => res.json({ valid: false }));

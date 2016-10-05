@@ -1,7 +1,7 @@
 'use strict';
-const express = require('express');
-const auth = require('./../util/auth');
-const models_1 = require('./../libs/models');
+const express = require("express");
+const auth = require("./../util/auth");
+const models_1 = require("./../libs/models");
 var router = express.Router();
 // 子路由器
 router.use('/revisions', require('./forms.revisions'));
@@ -21,21 +21,27 @@ router.use('/revisions', require('./forms.revisions'));
  */
 router.get('/', (req, res, next) => {
     const token = req.get('token');
+    const fillable = req.query && req.query.type && req.query.type == 'fillable' ? true : false;
+    console.log(fillable);
     auth.return_user(token).then(user => {
         let group = user.group;
         models_1.Form.find({}).exec()
             .then(forms => {
             let payload = forms.filter(form => {
-                if (group == 1) {
+                if (!fillable && group == 1) {
                     return true;
                 }
-                else {
-                    if (!form.revisions || form.revisions.length == 0) {
+                else if (fillable) {
+                    if (!form.revisions || form.revisions.filter(revision => revision.published).length == 0) {
                         return false;
                     }
                     else {
-                        return form.revisions[form.revisions.length - 1].group <= group;
+                        let publishedRevision = form.revisions.filter(revision => revision.published);
+                        return publishedRevision[publishedRevision.length - 1].group >= group;
                     }
+                }
+                else {
+                    return false;
                 }
             }).map(form => {
                 return {

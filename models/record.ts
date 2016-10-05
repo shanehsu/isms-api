@@ -7,16 +7,16 @@ const  ObjectId = mongoose.Schema.Types.ObjectId
 
 export interface RecordInterface extends mongoose.Document {
   formID?: string
-  formRevision?: number
+  formRevision?: string
   owningUnit?: string
   created?: Date
   serial?: number
   owner?: string
-  signatures?: [{
+  signatures?: {
     personnel: string,
     timestamp: Date,
     signed: boolean
-  }],
+  }[],
   data?: any
 }
 

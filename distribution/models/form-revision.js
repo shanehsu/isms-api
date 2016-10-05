@@ -1,6 +1,6 @@
 'use strict';
-const mongoose = require('mongoose');
-const Field = require('./field');
+const mongoose = require("mongoose");
+const Field = require("./field");
 exports.FormRevisionSchema = new mongoose.Schema({
     // 版本編號
     revision: {
@@ -14,6 +14,11 @@ exports.FormRevisionSchema = new mongoose.Schema({
         default: false
     },
     officerSignature: {
+        type: Boolean,
+        required: true,
+        default: false
+    },
+    published: {
         type: Boolean,
         required: true,
         default: false

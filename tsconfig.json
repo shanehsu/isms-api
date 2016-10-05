@@ -1,10 +1,15 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "es2015",
     "module": "commonjs",
     "moduleResolution": "node",
     "sourceMap": true,
-    "outDir": "distribution"
+    "outDir": "distribution",
+    "lib": [
+      "es5",
+      "es6",
+      "es2016.array.include"
+    ]
   },
   "exclude": [
     "node_modules"

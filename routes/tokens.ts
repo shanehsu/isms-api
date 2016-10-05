@@ -26,28 +26,12 @@ router.get('/', (req: Request, res: Response, next: Next) => {
 });
 
 /**
- * DEPRECATED
- * 
  * POST /tokens/valid
  * 
  * 回傳登入代幣是否有效。
  */
 router.post('/valid', (req: Request, res: Response) => {
   const token: string = req.body.token
-  
-  auth.validate_token(token)
-      .then(() => res.json({valid: true}))
-      .catch(() => res.json({valid: false})
-  )
-})
-
-/**
- * GET /tokens/valid
- * 
- * 回傳登入代幣是否有效。
- */
-router.post('/valid', (req: Request, res: Response) => {
-  const token: string = req.get('token')
   
   auth.validate_token(token)
       .then(() => res.json({valid: true}))

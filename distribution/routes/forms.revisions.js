@@ -1,7 +1,7 @@
 'use strict';
-const express = require('express');
-const auth = require('./../util/auth');
-const models_1 = require('./../libs/models');
+const express = require("express");
+const auth = require("./../util/auth");
+const models_1 = require("./../libs/models");
 // 路由器前置路徑 /forms/revisions
 var router = express.Router();
 // 子路由器
@@ -31,7 +31,8 @@ router.get('/:formID/:revisionID', (req, res, next) => {
                     group: revision.group,
                     secrecyLevel: revision.secrecyLevel,
                     template: revision.template,
-                    officerSignature: revision.officerSignature
+                    officerSignature: revision.officerSignature,
+                    published: revision.published
                 };
                 if (revision.fields) {
                     payload.fields = revision.fields.map(field => field.id);
@@ -113,6 +114,30 @@ router.put('/:formID/:revisionID', (req, res, next) => {
                 revision.secrecyLevel = req.body.secrecyLevel;
             if (req.body.template != undefined)
                 revision.template = req.body.template;
+            form.markModified('form.revisions.' + index);
+            form.save((err) => {
+                if (err)
+                    next(err);
+                else
+                    res.sendStatus(200);
+            });
+        }).catch(next);
+    }).catch(next);
+});
+router.put('/:formID/:revisionID/publish', (req, res, next) => {
+    const token = req.get('token');
+    const group = 1;
+    const formID = req.params.formID;
+    const revisionID = req.params.revisionID;
+    auth.ensure_group(token, group).then(user => {
+        models_1.Form.findById(formID).exec().then(form => {
+            let index = form.revisions.findIndex(revision => revision.id == revisionID);
+            if (index < 0) {
+                next(new Error('無法找到該表單版本。'));
+                return;
+            }
+            let revision = form.revisions[index];
+            revision.published = true;
             form.markModified('form.revisions.' + index);
             form.save((err) => {
                 if (err)

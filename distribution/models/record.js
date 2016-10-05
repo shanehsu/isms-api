@@ -1,5 +1,5 @@
 'use strict';
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const ObjectId = mongoose.Schema.Types.ObjectId;
 exports.RecordSchema = new mongoose.Schema({
     // 對應到表單的格式

@@ -6,7 +6,7 @@ import FormRevision = require('./form-revision')
 export interface FormInterface extends mongoose.Document {
   identifier?: string
   name?: string
-  revisions?: [FormRevision.FormRevisionInterface]
+  revisions?: FormRevision.FormRevisionInterface[]
 }
 
 export const FormSchema = new mongoose.Schema ({

@@ -2,10 +2,11 @@
 
 // TODO: 在這裡應該將 token 的 lastUsed 標成現在
 
+import mongoose = require('mongoose')
 import {User, UserInterface} from './../libs/models'
 
-let return_user = function(token: string): Promise<UserInterface> {
-  return new Promise<UserInterface>((resolve, reject) => {
+let return_user = function(token: string): Promise<mongoose._mongoose.Model<UserInterface>> {
+  return new Promise<mongoose._mongoose.Model<UserInterface>>((resolve, reject) => {
     User.find({'tokens.token' : token}).limit(1).exec().then(doc => {
       if (doc.length == 0) {
         reject(new Error('代幣為 ' + token + '的使用者並不存在。'))

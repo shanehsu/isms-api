@@ -1,5 +1,5 @@
 'use strict';
-const express = require('express');
+const express = require("express");
 var mongoose = require('./util/mongoose');
 // 中介軟體
 var logger = require('morgan');
@@ -30,6 +30,12 @@ app.use((req, res, next) => {
     res.header('Expires', '-1');
     res.header('Pragma', 'no-cache');
     next();
+});
+// 加上延遲，模擬真實情況
+app.use((req, res, next) => {
+    setTimeout(() => {
+        next();
+    }, 0);
 });
 // 路徑
 app.use('/pieces', pieces);

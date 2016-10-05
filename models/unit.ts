@@ -8,10 +8,10 @@ export interface UnitInterface extends mongoose.Document {
   name: string
   identifier: number
   parentUnit?: string
-  childUnits?: [string]
+  childUnits?: string[]
   manager?: string
   docsControl?: string
-  agents?: [string]
+  agents?: string[]
 }
 
 export const UnitSchema = new mongoose.Schema({

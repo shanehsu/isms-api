@@ -1,7 +1,7 @@
 'use strict';
-const express = require('express');
-const models_1 = require('./../libs/models');
-const auth = require('../util/auth');
+const express = require("express");
+const models_1 = require("./../libs/models");
+const auth = require("../util/auth");
 var router = express.Router();
 /**
  * GET /users

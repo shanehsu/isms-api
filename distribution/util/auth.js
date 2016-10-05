@@ -1,6 +1,5 @@
 'use strict';
-// TODO: 在這裡應該將 token 的 lastUsed 標成現在
-const models_1 = require('./../libs/models');
+const models_1 = require("./../libs/models");
 let return_user = function (token) {
     return new Promise((resolve, reject) => {
         models_1.User.find({ 'tokens.token': token }).limit(1).exec().then(doc => {

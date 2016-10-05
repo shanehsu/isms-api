@@ -45,6 +45,13 @@ app.use((req: Request, res: Response, next: Next) => {
   next()
 })
 
+// 加上延遲，模擬真實情況
+app.use((req: Request, res: Response, next: Next) => {
+    setTimeout(() => {
+      next()
+    }, 0);
+})
+
 // 路徑
 app.use('/pieces', pieces)
 app.use('/auth', auth)

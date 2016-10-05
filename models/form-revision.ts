@@ -7,10 +7,11 @@ export interface FormRevisionInterface extends mongoose.Document {
   revision: number
   signatures: boolean
   officerSignature: boolean
+  published: boolean
   group: number
   secrecyLevel: number
   template: string
-  fields: [Field.FieldInterface]
+  fields: Field.FieldInterface[]
 }
 
 export const FormRevisionSchema = new mongoose.Schema ({
@@ -26,6 +27,11 @@ export const FormRevisionSchema = new mongoose.Schema ({
     default: false
   },
   officerSignature: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  published: {
     type: Boolean,
     required: true,
     default: false

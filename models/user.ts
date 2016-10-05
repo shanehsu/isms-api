@@ -8,7 +8,7 @@ export interface UserInterface extends mongoose.Document {
   name: string
   group: number
   unit?: string
-  tokens: [Token.TokenInterface]
+  tokens: Token.TokenInterface[]
 }
 
 export const UserSchema = new mongoose.Schema({

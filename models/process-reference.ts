@@ -12,7 +12,7 @@ export interface ProcessReferenceInterface extends mongoose.Document {
   blob?: String
   secrecyLevel?: number
   managementPersonnel?: string
-  forms?: [string]
+  forms?: string[]
 }
 
 export const ProcessReferenceSchema = new mongoose.Schema({

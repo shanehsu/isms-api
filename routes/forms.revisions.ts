@@ -46,7 +46,8 @@ router.get('/:formID/:revisionID', (req: Request, res: Response, next: Next) => 
           group: revision.group,
           secrecyLevel: revision.secrecyLevel,
           template: revision.template,
-          officerSignature: revision.officerSignature
+          officerSignature: revision.officerSignature,
+          published: revision.published
         }
         
         if (revision.fields) {
@@ -133,6 +134,33 @@ router.put('/:formID/:revisionID', (req: Request, res: Response, next: Next) => 
       if (req.body.group != undefined) revision.group = req.body.group
       if (req.body.secrecyLevel != undefined) revision.secrecyLevel = req.body.secrecyLevel
       if (req.body.template != undefined) revision.template = req.body.template
+      
+      form.markModified('form.revisions.' + index)
+      
+      form.save((err) => {
+        if (err) next(err)
+        else res.sendStatus(200)
+      })
+    }).catch(next)
+  }).catch(next)
+})
+
+router.put('/:formID/:revisionID/publish', (req: Request, res: Response, next: Next) => {
+  const token: string = req.get('token')
+  const group: number = 1
+  
+  const formID: string = req.params.formID
+  const revisionID: string = req.params.revisionID
+  
+  auth.ensure_group(token, group).then(user => {
+    Form.findById(formID).exec().then(form => {
+      let index = form.revisions.findIndex(revision => revision.id == revisionID)
+      if (index < 0) {
+        next(new Error('無法找到該表單版本。'))
+        return
+      }
+      let revision = form.revisions[index]
+      revision.published = true
       
       form.markModified('form.revisions.' + index)
       
