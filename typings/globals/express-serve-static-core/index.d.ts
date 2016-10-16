@@ -121,7 +121,7 @@ declare module "express-serve-static-core" {
 
     interface Errback { (err: Error): void; }
 
-    interface Request extends http.ClientRequest, Express.Request {
+    interface Request extends http.ServerRequest, Express.Request {
 
         /**
             * Return request header.

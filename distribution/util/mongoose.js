@@ -1,7 +1,10 @@
 "use strict";
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 // const db_uri: string = 'mongodb://isms:isms@ds053964.mongolab.com:53964/isms'
-const db_uri = 'mongodb://127.0.0.1/isms';
+// 找到 --mongodb <port>
+let portIndex = process.argv.indexOf('--mongodb') + 1;
+let port = portIndex >= 0 ? process.argv[portIndex] : 27017;
+const db_uri = `mongodb://127.0.0.1:${port}/isms`;
 mongoose.connect(db_uri);
 // 成功連線的訊息
 mongoose.connection.on('connected', () => {
@@ -38,7 +41,7 @@ process.on('SIGINT', function () {
     });
 });
 // BRING IN YOUR SCHEMAS & MODELS
-const Models = require("./../libs/models");
+const Models = require('./../libs/models');
 mongoose.Promise = Promise;
 module.exports = mongoose;
 //# sourceMappingURL=mongoose.js.map

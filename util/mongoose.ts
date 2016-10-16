@@ -1,7 +1,12 @@
 import mongoose = require('mongoose');
 
 // const db_uri: string = 'mongodb://isms:isms@ds053964.mongolab.com:53964/isms'
-const db_uri = 'mongodb://127.0.0.1/isms'
+
+// 找到 --mongodb <port>
+let portIndex = process.argv.indexOf('--mongodb') + 1
+let port = portIndex >= 0 ? process.argv[portIndex] : 27017
+
+const db_uri = `mongodb://127.0.0.1:${port}/isms`
 
 mongoose.connect(db_uri)
 

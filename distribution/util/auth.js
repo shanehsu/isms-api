@@ -1,5 +1,5 @@
 'use strict';
-const models_1 = require("./../libs/models");
+const models_1 = require('./../libs/models');
 let return_user = function (token) {
     return new Promise((resolve, reject) => {
         models_1.User.find({ 'tokens.token': token }).limit(1).exec().then(doc => {
