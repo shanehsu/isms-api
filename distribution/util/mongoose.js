@@ -1,9 +1,9 @@
 "use strict";
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 // const db_uri: string = 'mongodb://isms:isms@ds053964.mongolab.com:53964/isms'
 // 找到 --mongodb <port>
 let portIndex = process.argv.indexOf('--mongodb') + 1;
-let port = portIndex >= 0 ? process.argv[portIndex] : 27017;
+let port = portIndex > 0 ? process.argv[portIndex] : 27017;
 const db_uri = `mongodb://127.0.0.1:${port}/isms`;
 mongoose.connect(db_uri);
 // 成功連線的訊息
@@ -15,9 +15,10 @@ mongoose.connection.on('connected', () => {
             Models.User.create({
                 email: 'hsu.pengjun@icloud.com',
                 name: '徐鵬鈞',
-                group: 1
+                group: "admins",
+                tokens: []
             }).then(x => {
-                console.log("已新增第一個管理員");
+                console.log("已新增第一個管理員（以 SSO 登入）");
             }).catch(x => {
                 console.error("無法新增第一個管理員，系統將無法使用");
                 console.error(x);
@@ -41,7 +42,7 @@ process.on('SIGINT', function () {
     });
 });
 // BRING IN YOUR SCHEMAS & MODELS
-const Models = require('./../libs/models');
+const Models = require("./../libs/models");
 mongoose.Promise = Promise;
 module.exports = mongoose;
 //# sourceMappingURL=mongoose.js.map

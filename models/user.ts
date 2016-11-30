@@ -2,13 +2,17 @@
 
 import mongoose = require('mongoose')
 import Token    = require('./token')
+import {PasswordInterface, PasswordSchema} from './password'
+
+export type Group = "admins" | "securityPersonnel" | "users" | "vendors" | "guests"
 
 export interface UserInterface extends mongoose.Document {
   email: string
   name: string
-  group: number
-  unit?: string
+  password?: PasswordInterface
+  group: Group
   tokens: Token.TokenInterface[]
+  confirmed: boolean
 }
 
 export const UserSchema = new mongoose.Schema({
@@ -17,24 +21,29 @@ export const UserSchema = new mongoose.Schema({
     default: 'user@cc.ncue.edu.tw',
     required: true
   },
+  password: {
+    type: PasswordSchema,
+    required: false
+  },
   name: {
     type: String,
     default: '王大明',
     required: true
   },
   group: {
-    type: Number,
-    default: 2,
+    type: String,
+    default: 'users',
     required: true
-  },
-  unit: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: false
   },
   tokens: {
     type: [Token.TokenSchema],
     default: [],
     required: false
+  },
+  confirmed: {
+    type: Boolean,
+    default: true,
+    required: true
   }
 })
 

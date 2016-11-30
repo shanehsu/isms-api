@@ -1,6 +1,6 @@
 'use strict';
-const mongoose = require('mongoose');
-const Field = require('./field');
+const mongoose = require("mongoose");
+const Field = require("./field");
 exports.FormRevisionSchema = new mongoose.Schema({
     // 版本編號
     revision: {

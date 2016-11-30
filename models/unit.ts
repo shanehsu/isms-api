@@ -8,10 +8,13 @@ export interface UnitInterface extends mongoose.Document {
   name: string
   identifier: number
   parentUnit?: string
-  childUnits?: string[]
-  manager?: string
-  docsControl?: string
-  agents?: string[]
+  
+  members: {
+    none: string[],
+    agents: string[],
+    docsControl?: string,
+    manager?: string
+  }
 }
 
 export const UnitSchema = new mongoose.Schema({
@@ -29,21 +32,25 @@ export const UnitSchema = new mongoose.Schema({
     type: ObjectId,
     required: false
   },
-  childUnits: {
-    type: [ObjectId],
-    required: false
-  },
-  manager: {
-    type: ObjectId,
-    required: false
-  },
-  docsControl: {
-    type: ObjectId,
-    required: false
-  },
-  agents: {
-    type: [ObjectId],
-    required: false
+  members: {
+    none: {
+      type: [ObjectId],
+      require: true,
+      default: []
+    },
+    manager: {
+      type: ObjectId,
+      required: false
+    },
+    docsControl: {
+      type: ObjectId,
+      required: false
+    },
+    agents: {
+      type: [ObjectId],
+      required: true,
+      default: []
+    }
   }
 })
 
