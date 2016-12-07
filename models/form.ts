@@ -12,16 +12,19 @@ export interface FormInterface extends mongoose.Document {
 export const FormSchema = new mongoose.Schema ({
   identifier: {
     type: String,
-    required: false
+    required: true,
+    default: 'ISMS-NEW'
   },
   name: {
     type: String,
-    required: false
+    required: true,
+    default: '新表單'
   },
   // 各個版本
   revisions: {
     type: [FormRevision.FormRevisionSchema],
-    required: false
+    required: false,
+    default: []
   }
 })
 

@@ -14,12 +14,15 @@ registerRouter.use((req, res, next) => {
 })
 
 registerRouter.post('/', (req, res, next) => {
-  User.create({
-    email: req.body.email,
-    name: req.body.name,
-    password: generatePassword(req.body.password),
-    group: "vendors" as Group,
-    tokens: [],
-    confirmed: false
-  }).then(_ => res.status(201).send()).catch(next)
+  if (req.body.password.length < 6 || req.body.name.length == 0) { res.status(500).send(); return; }
+  generatePassword(req.body.password).then(password => {
+    User.create({
+      email: req.body.email,
+      name: req.body.name,
+      password: password,
+      group: "vendors" as Group,
+      tokens: [],
+      confirmed: false
+    }).then(_ => res.status(201).send()).catch(next)
+  }).catch(next)
 })

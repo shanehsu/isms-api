@@ -1,12 +1,13 @@
 'use strict';
-const mongoose = require("mongoose");
-const Token = require("./token");
-const password_1 = require("./password");
+const mongoose = require('mongoose');
+const Token = require('./token');
+const password_1 = require('./password');
 exports.UserSchema = new mongoose.Schema({
     email: {
         type: String,
         default: 'user@cc.ncue.edu.tw',
-        required: true
+        required: true,
+        unique: true
     },
     password: {
         type: password_1.PasswordSchema,

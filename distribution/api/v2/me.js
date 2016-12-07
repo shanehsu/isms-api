@@ -1,9 +1,13 @@
 "use strict";
-const express = require("express");
-const models_1 = require("./../../libs/models");
-const auth_1 = require("./../../util/auth");
+const express = require('express');
+const models_1 = require('./../../libs/models');
+const auth_1 = require('./../../util/auth');
 exports.meRouter = express.Router();
 exports.meRouter.use((req, res, next) => {
+    if (req.method.toLowerCase() == 'options') {
+        next();
+        return;
+    }
     if (req['group'] == 'guests') {
         res.status(401).send();
     }

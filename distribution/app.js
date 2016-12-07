@@ -1,8 +1,8 @@
 'use strict';
-const express = require("express");
-const middlewares_1 = require("./util/middlewares");
-const api_1 = require("./api/api");
-const sso_1 = require("./sso");
+const express = require('express');
+const middlewares_1 = require('./util/middlewares');
+const api_1 = require('./api/api');
+const sso_1 = require('./sso');
 var mongoose = require('./util/mongoose');
 var colors = require('colors/safe');
 var logger = require('morgan')('dev');
@@ -19,6 +19,11 @@ app.use(urlEncodedParser);
 app.use(middlewares_1.corsHeader);
 app.use(middlewares_1.noCache);
 app.use(middlewares_1.randomResponseTimeDelay);
+app.use((req, res, next) => {
+    // console.log('收到的 cookies')
+    // console.dir(req.cookies)
+    next();
+});
 // 路由
 app.use('/api', api_1.APIRouter);
 app.use('/sso', sso_1.ssoRouter);

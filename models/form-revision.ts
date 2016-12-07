@@ -6,9 +6,13 @@ import Field    = require('./field')
 export interface FormRevisionInterface extends mongoose.Document {
   revision: number
   signatures: boolean
-  officerSignature: boolean
+  skipImmediateChief: boolean
   published: boolean
-  group: number
+  group: {
+    "securityPersonnel": boolean,
+    "users": boolean,
+    "vendors": boolean
+  }
   secrecyLevel: number
   template: string
   fields: Field.FieldInterface[]
@@ -26,7 +30,7 @@ export const FormRevisionSchema = new mongoose.Schema ({
     required: true,
     default: false
   },
-  officerSignature: {
+  skipImmediateChief: {
     type: Boolean,
     required: true,
     default: false
@@ -38,9 +42,17 @@ export const FormRevisionSchema = new mongoose.Schema ({
   },
   // 填表群組
   group: {
-    type: Number,
+    type: {
+      "securityPersonnel": Boolean,
+      "users": Boolean,
+      "vendors": Boolean
+    },
     required: true,
-    default: 3
+    default: {
+      "securityPersonnel": false,
+      "users": false,
+      "vendors": false
+    }
   },
   // 機密等級
   secrecyLevel: {
@@ -58,4 +70,4 @@ export const FormRevisionSchema = new mongoose.Schema ({
     type: [Field.FieldSchema],
     requied: false
   }
-})
+}, {_id: false})

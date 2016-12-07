@@ -21,7 +21,7 @@ loginRouter.get('/sso', (req, res, next) => {
   })
 })
 loginRouter.post('/sso', (req, res, next) => {
-  let ssoToken = req.cookies['sso-token']
+  let ssoToken = req.body.sso_token
   if (ssoToken) {
     request.post('http://localhost:3000/sso/validate', { body: { token: ssoToken }, json: true }).then(value => {
       if (value && value.valid == true && value.email) {
@@ -32,7 +32,7 @@ loginRouter.post('/sso', (req, res, next) => {
               $push: { tokens: t }
             }).then(_ => res.json({ success: true, token: t.token })).catch(err => next(err))
           } else if (users.length == 0) {
-            res.json({
+            res.status(500).json({
               success: false,
               message: '您的帳號不在該系統內，請通知系統管理員。'
             })
@@ -43,7 +43,7 @@ loginRouter.post('/sso', (req, res, next) => {
       }
     }).catch(err => next(err))
   } else {
-    res.json({
+    res.status(500).json({
       success: false,
       message: '必須有 sso-token 這個餅乾屑。'
     })
@@ -54,7 +54,7 @@ loginRouter.post('/standalone', (req, res, next) => {
   let email = req.body.email
   let password = req.body.password
   if (email && password) {
-    User.findOne({ email: email, group: 'vendors' }).then(user => {
+    User.findOne({ email: email, group: 'vendors', confirmed: 'true' }).then(user => {
       if (user) {
         crypto.pbkdf2(password, user.password.salt, user.password.iteration, 512, 'sha512', (err: Error, key: Buffer | null) => {
           if (err) {
@@ -70,16 +70,16 @@ loginRouter.post('/standalone', (req, res, next) => {
                 res.json({ success: true, token: t.token })
               }).catch(err => next(err))
             } else {
-              res.json({ success: false, message: '登入資訊錯誤。' })
+              res.status(500).json({ success: false, message: '登入資訊錯誤。' })
             }
           }
         })
       } else {
-        res.json({ success: false, message: '登入資訊錯誤。' })
+        res.status(500).json({ success: false, message: '登入資訊錯誤。' })
       }
     }).catch(err => next(err))
   } else {
-    res.json({ success: false, message: '登入資訊錯誤。' })
+    res.status(500).json({ success: false, message: '登入資訊錯誤。' })
   }
 })
 

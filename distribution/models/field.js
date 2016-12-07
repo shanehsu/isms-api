@@ -1,5 +1,5 @@
 'use strict';
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const ObjectId = mongoose.Schema.Types.ObjectId;
 exports.FieldSchema = new mongoose.Schema({
     name: {
@@ -13,7 +13,7 @@ exports.FieldSchema = new mongoose.Schema({
         required: true,
         validate: {
             validator: function (value) {
-                return ['shortText', 'longText', 'date', 'time', 'options', 'table'].indexOf(value) >= 0;
+                return ['shortText', 'longText', 'date', 'time', 'options', 'table'].includes(value);
             },
             message: '{VALUE} is not a valid field type.'
         }
@@ -24,27 +24,8 @@ exports.FieldSchema = new mongoose.Schema({
     },
     // 這個裡面會是一個 JSON 字串
     metadata: {
-        type: String,
-        default: '{}',
-        required: true,
-        validate: {
-            validator: function (value) {
-                try {
-                    JSON.parse(value);
-                    return true;
-                }
-                catch (e) {
-                    return false;
-                }
-            },
-            message: '{VALUE} is not a valid JSON string.'
-        },
-        get: function (metadata) {
-            return JSON.parse(metadata);
-        },
-        set: function (metadata) {
-            return JSON.stringify(metadata);
-        }
+        type: mongoose.SchemaTypes.Object,
+        required: false
     }
-});
+}, { _id: false });
 //# sourceMappingURL=field.js.map

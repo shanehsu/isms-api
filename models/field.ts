@@ -8,7 +8,7 @@ export interface FieldInterface extends mongoose.Document {
   name: string
   type: string
   hint?: string
-  metadata: any
+  metadata?: any | Object
 }
 
 export const FieldSchema = new mongoose.Schema ({
@@ -23,7 +23,7 @@ export const FieldSchema = new mongoose.Schema ({
     required: true,
     validate: {
       validator: function(value) {
-        return ['shortText', 'longText', 'date', 'time', 'options', 'table'].indexOf(value) >= 0
+        return ['shortText', 'longText', 'date', 'time', 'options', 'table'].includes(value)
       },
       message: '{VALUE} is not a valid field type.'
     }
@@ -34,25 +34,7 @@ export const FieldSchema = new mongoose.Schema ({
   },
   // 這個裡面會是一個 JSON 字串
   metadata: {
-    type: String,
-    default: '{}',
-    required: true,
-    validate: {
-      validator: function(value) {
-        try {
-          JSON.parse(value)
-          return true
-        } catch (e) {
-          return false
-        }
-      },
-      message: '{VALUE} is not a valid JSON string.'
-    },
-    get: function(metadata: string): any {
-      return JSON.parse(metadata)
-    },
-    set: function(metadata: Object): any {
-      return JSON.stringify(metadata)
-    }
+    type: mongoose.SchemaTypes.Object,
+    required: false
   }
-})
+}, {_id: false})

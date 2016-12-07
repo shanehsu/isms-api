@@ -29,6 +29,13 @@ app.use(corsHeader)
 app.use(noCache)
 app.use(randomResponseTimeDelay)
 
+app.use((req, res, next) => {
+  // console.log('收到的 cookies')
+  // console.dir(req.cookies)
+
+  next()
+})
+
 // 路由
 app.use('/api', APIRouter)
 app.use('/sso', ssoRouter)

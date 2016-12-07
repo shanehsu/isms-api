@@ -1,11 +1,11 @@
 "use strict";
-const express = require("express");
-const models_1 = require("./../../libs/models");
+const express = require('express');
+const models_1 = require('./../../libs/models');
 exports.newsRouter = express.Router();
 exports.newsRouter.get('/', (req, res, next) => {
     if (req.query && req.query.page) {
         let page = +req.query.page - 1;
-        models_1.Piece.find().sort({ date: 'descending' }).skip(page * 10).limit(10).then(res.json).catch(next);
+        models_1.Piece.find().sort({ date: 'descending' }).skip(page * 10).limit(10).then(data => res.json(data)).catch(next);
     }
     else {
         models_1.Piece.find().sort({ date: 'descending' }).then(data => res.json(data)).catch(next);

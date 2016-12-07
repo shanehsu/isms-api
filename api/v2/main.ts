@@ -7,7 +7,7 @@ import { newsRouter } from './news'
 import { usersRouter } from './users'
 import { meRouter } from './me'
 import { registerRouter } from './register'
-
+import { formsRouter } from './forms'
 export let V2Router = express.Router()
 
 V2Router.use((req, res, next) => {
@@ -34,3 +34,5 @@ V2Router.use('/news', newsRouter)
 V2Router.use('/users', usersRouter)
 V2Router.use('/me', meRouter)
 V2Router.use('/register', registerRouter)
+V2Router.use('/forms', formsRouter)
+

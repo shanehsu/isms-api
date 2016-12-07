@@ -1,5 +1,5 @@
 'use strict';
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const ObjectId = mongoose.Schema.Types.ObjectId;
 exports.RecordSchema = new mongoose.Schema({
     // 對應到表單的格式
@@ -27,6 +27,11 @@ exports.RecordSchema = new mongoose.Schema({
         type: Number,
         required: false
     },
+    // 表單編號
+    generatedSerial: {
+        type: String,
+        required: false
+    },
     // 對應到填寫者
     owner: {
         type: ObjectId,
@@ -44,16 +49,10 @@ exports.RecordSchema = new mongoose.Schema({
         required: false
     },
     // 表單資料
-    data: {
-        type: String,
-        default: '{}',
-        required: true,
-        get: function (metadata) {
-            return JSON.parse(metadata);
-        },
-        set: function (metadata) {
-            return JSON.stringify(metadata);
-        }
+    contents: {
+        type: mongoose.SchemaTypes.Object,
+        default: {},
+        required: true
     }
 });
 exports.Record = mongoose.model('Record', exports.RecordSchema);

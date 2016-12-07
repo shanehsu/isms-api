@@ -1,6 +1,6 @@
 'use strict';
-const crypto = require("crypto");
-const models_1 = require("./../libs/models");
+const crypto = require('crypto');
+const models_1 = require('./../libs/models');
 function returnUser(token) {
     return new Promise((resolve, reject) => {
         models_1.User.find({ 'tokens.token': token }).limit(1).exec().then(doc => {

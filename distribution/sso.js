@@ -1,6 +1,6 @@
 "use strict";
-const express = require("express");
-const crypto = require("crypto");
+const express = require('express');
+const crypto = require('crypto');
 exports.ssoRouter = express.Router();
 var inMemoryDatabase = [];
 /*
@@ -9,8 +9,9 @@ var inMemoryDatabase = [];
  */
 exports.ssoRouter.get('', (req, res, next) => {
     let redirectUrl = req.query.redirectUrl;
+    let encodedRedirectUrl = encodeURIComponent(redirectUrl);
     if (!redirectUrl) {
-        res.contentType('text.html').send(`
+        res.contentType('text/html').send(`
     <!DOCTYPE html>
     <html>
     <head>
@@ -38,7 +39,7 @@ exports.ssoRouter.get('', (req, res, next) => {
     `);
     }
     else {
-        res.contentType('text.html').send(`
+        res.contentType('text/html').send(`
     <!DOCTYPE html>
     <html>
     <head>
@@ -54,7 +55,7 @@ exports.ssoRouter.get('', (req, res, next) => {
         <div class="ui one item menu" style="margin-top: 0.5em;">
           <a class="item">SSO</a>
         </div>
-        <form class="ui form" method="POST" action="/sso/login?redirectUrl=${redirectUrl}">
+        <form class="ui form" method="POST" action="/sso/login?redirectUrl=${encodedRedirectUrl}">
           <div class="field">
             <label>電子郵件位址</label>
             <input type="email" name="email" placeholder="電子郵件位址">
@@ -97,8 +98,12 @@ exports.ssoRouter.post('/login', (req, res, next) => {
             });
         }
         // 寫入 Cookie
-        res.cookie('sso-token', token);
+        // res.cookie('sso-token', token)
         // 重新導向
+        console.log('token = ', token);
+        console.log('redirectUrl = ', redirectUrl);
+        redirectUrl = redirectUrl + token;
+        console.log('redirect to url: ' + redirectUrl);
         res.redirect(redirectUrl);
     });
 });

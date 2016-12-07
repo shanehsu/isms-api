@@ -19,7 +19,8 @@ export const UserSchema = new mongoose.Schema({
   email: {
     type: String,
     default: 'user@cc.ncue.edu.tw',
-    required: true
+    required: true,
+    unique: true
   },
   password: {
     type: PasswordSchema,

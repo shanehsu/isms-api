@@ -1,6 +1,6 @@
 "use strict";
-const express = require("express");
-const models_1 = require("./../../libs/models");
+const express = require('express');
+const models_1 = require('./../../libs/models');
 exports.usersRouter = express.Router();
 exports.usersRouter.use((req, res, next) => {
     if (req['group'] != 'admins') {

@@ -1,6 +1,6 @@
 'use strict';
-const mongoose = require("mongoose");
-const Field = require("./field");
+const mongoose = require('mongoose');
+const Field = require('./field');
 exports.FormRevisionSchema = new mongoose.Schema({
     // 版本編號
     revision: {
@@ -13,7 +13,7 @@ exports.FormRevisionSchema = new mongoose.Schema({
         required: true,
         default: false
     },
-    officerSignature: {
+    skipImmediateChief: {
         type: Boolean,
         required: true,
         default: false
@@ -25,9 +25,17 @@ exports.FormRevisionSchema = new mongoose.Schema({
     },
     // 填表群組
     group: {
-        type: Number,
+        type: {
+            "securityPersonnel": Boolean,
+            "users": Boolean,
+            "vendors": Boolean
+        },
         required: true,
-        default: 3
+        default: {
+            "securityPersonnel": false,
+            "users": false,
+            "vendors": false
+        }
     },
     // 機密等級
     secrecyLevel: {
@@ -45,5 +53,5 @@ exports.FormRevisionSchema = new mongoose.Schema({
         type: [Field.FieldSchema],
         requied: false
     }
-});
+}, { _id: false });
 //# sourceMappingURL=form-revision.js.map

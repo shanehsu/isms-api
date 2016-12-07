@@ -11,13 +11,14 @@ export interface RecordInterface extends mongoose.Document {
   owningUnit?: string
   created?: Date
   serial?: number
+  generatedSerial?: string  
   owner?: string
   signatures?: {
     personnel: string,
     timestamp: Date,
     signed: boolean
   }[],
-  data?: any
+  contents?: any
 }
 
 export const RecordSchema = new mongoose.Schema ({
@@ -49,6 +50,12 @@ export const RecordSchema = new mongoose.Schema ({
     type: Number,
     required: false
   },
+
+  // 表單編號
+  generatedSerial: {
+    type: String,
+    required: false
+  },
   
   // 對應到填寫者
   owner: {
@@ -69,16 +76,10 @@ export const RecordSchema = new mongoose.Schema ({
   },
   
   // 表單資料
-  data: {
-    type: String,
-    default: '{}',
-    required: true,
-    get: function(metadata: string): any {
-      return JSON.parse(metadata)
-    },
-    set: function(metadata: any): string {
-      return JSON.stringify(metadata)
-    }
+  contents: {
+    type: mongoose.SchemaTypes.Object,
+    default: {},
+    required: true
   }
 })
 

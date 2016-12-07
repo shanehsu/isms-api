@@ -6,6 +6,7 @@ import { generatePassword } from './../../util/auth'
 export let meRouter = express.Router()
 
 meRouter.use((req, res, next) => {
+  if (req.method.toLowerCase() == 'options') { next(); return; }
   if (req['group'] as Group == 'guests') {
     res.status(401).send()
   } else {
