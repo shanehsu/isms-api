@@ -27,6 +27,6 @@ build/Release
 node_modules
 
 # TypeScript distribution
-distribution/
+distribution
 
 .DS_Store
