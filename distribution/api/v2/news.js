@@ -13,7 +13,7 @@ exports.newsRouter.get('/', (req, res, next) => {
 });
 exports.newsRouter.get('/:id', (req, res, next) => {
     const id = req.params.id;
-    models_1.Piece.findById(id).then(res.json).catch(next);
+    models_1.Piece.findById(id).then(p => res.json(p)).catch(next);
 });
 exports.newsRouter.post('/', (req, res, next) => {
     let group = req['group'];

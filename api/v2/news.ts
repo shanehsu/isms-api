@@ -14,7 +14,7 @@ newsRouter.get('/', (req, res, next) => {
 
 newsRouter.get('/:id', (req, res, next) => {
   const id = req.params.id
-  Piece.findById(id).then(res.json).catch(next)
+  Piece.findById(id).then(p => res.json(p)).catch(next)
 })
 
 newsRouter.post('/', (req, res, next) => {
