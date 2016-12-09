@@ -1,37 +1,21 @@
 {
+  // Use IntelliSense to find out which attributes exist for node debugging
+  // Use hover for the description of the existing attributes
+  // For further information visit https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "啟動",
-      "type": "node",
+      "name": "Launch Program",
+      "type": "node2",
       "request": "launch",
       "program": "${workspaceRoot}/distribution/server.js",
-      "stopOnEntry": false,
-      "args": [],
-      "cwd": "${workspaceRoot}",
-      "preLaunchTask": "tsc",
-      "runtimeExecutable": null,
-      "runtimeArgs": [
-        "--nolazy"
-      ],
-      "env": {
-        "NODE_ENV": "development"
-      },
-      "externalConsole": false,
-      "sourceMaps": false,
-      "outDir": null
+      "cwd": "${workspaceRoot}"
     },
     {
-      "name": "附加",
-      "type": "node",
+      "name": "Attach to Process",
+      "type": "node2",
       "request": "attach",
-      "port": 5858,
-      "address": "localhost",
-      "restart": false,
-      "sourceMaps": false,
-      "outDir": null,
-      "localRoot": "${workspaceRoot}",
-      "remoteRoot": null
+      "port": 9229
     }
   ]
 }
