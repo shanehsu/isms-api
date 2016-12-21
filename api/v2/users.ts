@@ -5,6 +5,7 @@ import { generatePassword } from './../../util/auth'
 export let usersRouter = express.Router()
 
 usersRouter.use((req, res, next) => {
+  if (req.method.toLowerCase() == 'options') { next(); return; }
   if (req['group'] as Group != 'admins') {
     res.status(401).send()
   } else {
@@ -13,11 +14,17 @@ usersRouter.use((req, res, next) => {
 })
 
 usersRouter.get('/', (req, res, next) => {
-  User.find({}, { password: 0, tokens: 0 }).then(res.json).catch(next)
+  User.find({}, { password: 0, tokens: 0 }).then(users => res.json(users)).catch(next)
 })
 
 usersRouter.get('/:id', (req, res, next) => {
-  User.findById(req.params.id, { password: 0, "tokens.token": 0 }).then(res.json).catch(next)
+  User.findById(req.params.id, { password: 0, "tokens.token": 0 }).then(user => {
+    if (!user) {
+      res.status(404).send()
+      return
+    }
+    res.json(user)
+  }).catch(next)
 })
 
 usersRouter.post('/', (req, res, next) => {
@@ -27,8 +34,12 @@ usersRouter.post('/', (req, res, next) => {
 usersRouter.put('/:id', (req, res, next) => {
   delete req.body.tokens
   delete req.body.password
-  
+
   User.findById(req.params.id).then(user => {
+    if (!user) {
+      res.status(404).send()
+      return
+    }
     let originalGroup = user.group
     if (originalGroup == "vendors") {
       delete req.body.group
@@ -38,18 +49,22 @@ usersRouter.put('/:id', (req, res, next) => {
         return
       }
     }
-    
+
     User.findByIdAndUpdate(req.params.id, { $set: req.body }).then(_ => res.status(204).send()).catch(next)
   }).catch(next)
 })
 
 usersRouter.delete('/:id', (req, res, next) => {
   User.findById(req.params.id).then(user => {
+    if (!user) {
+      res.status(404).send()
+      return
+    }
     Unit.aggregate([
       {
         $project: {
           _members: {
-            $concatArrays: ["$members.none", "$members.agents", ["$members.manager"], ["$members.docsControl"]]
+            $concatArrays: ["$members.none", "$members.agents", "$members.vendors", ["$members.manager"], ["$members.docsControl"]]
           },
           members: 1,
           name: 1,

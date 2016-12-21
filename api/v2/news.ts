@@ -1,5 +1,5 @@
 import express = require('express')
-import { Piece, Group }  from './../../libs/models'
+import { Piece, Group } from './../../libs/models'
 
 export let newsRouter = express.Router()
 
@@ -14,7 +14,13 @@ newsRouter.get('/', (req, res, next) => {
 
 newsRouter.get('/:id', (req, res, next) => {
   const id = req.params.id
-  Piece.findById(id).then(p => res.json(p)).catch(next)
+  Piece.findById(id).then(p => {
+    if (!p) {
+      res.status(404).send()
+      return
+    }
+    res.json(p)
+  }).catch(next)
 })
 
 newsRouter.post('/', (req, res, next) => {

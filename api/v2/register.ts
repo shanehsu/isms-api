@@ -1,10 +1,11 @@
 import express = require('express')
-import { User, Group, TokenInterface }  from './../../libs/models'
+import { User, Group, TokenInterface } from './../../libs/models'
 import { generatePassword } from './../../util/auth'
 
 export let registerRouter = express.Router()
 
 registerRouter.use((req, res, next) => {
+  if (req.method.toLowerCase() == 'options') { next(); return; }
   let group = req['group'] as Group
   if (group == "guests") {
     next()

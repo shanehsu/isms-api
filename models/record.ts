@@ -77,7 +77,7 @@ export const RecordSchema = new mongoose.Schema ({
   
   // 表單資料
   contents: {
-    type: mongoose.SchemaTypes.Object,
+    type: mongoose.Schema.Types.Mixed,
     default: {},
     required: true
   }

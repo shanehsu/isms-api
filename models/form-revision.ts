@@ -1,7 +1,7 @@
 'use strict'
 
 import mongoose = require('mongoose')
-import Field    = require('./field')
+import Field = require('./field')
 
 export interface FormRevisionInterface extends mongoose.Document {
   revision: number
@@ -18,7 +18,7 @@ export interface FormRevisionInterface extends mongoose.Document {
   fields: Field.FieldInterface[]
 }
 
-export const FormRevisionSchema = new mongoose.Schema ({
+export const FormRevisionSchema = new mongoose.Schema({
   // 版本編號
   revision: {
     type: Number,
@@ -70,4 +70,4 @@ export const FormRevisionSchema = new mongoose.Schema ({
     type: [Field.FieldSchema],
     requied: false
   }
-}, {_id: false})
+})

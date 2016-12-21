@@ -15,14 +15,15 @@ meRouter.use((req, res, next) => {
 })
 
 meRouter.get('/', (req, res, next) => {
-  let user: mongoose._mongoose.Model<UserInterface> = req['user']
-  
+  let user: UserInterface = req['user']
+
   Unit.find({
     "$or": [
-        { "members.none": user.id },
-        { "members.docsControl": user.id },
-        { "members.agent": user.id },
-        { "members.manager": user.id }
+      { "members.none": user.id },
+      { "members.docsControl": user.id },
+      { "members.agent": user.id },
+      { "members.manager": user.id },
+      { "members.vendors": user.id }
     ]
   }).then(units => {
     if (units.length > 0) {
@@ -32,16 +33,16 @@ meRouter.get('/', (req, res, next) => {
         manager: unit.members.manager == user.id,
         docsControl: unit.members.docsControl == user.id
       };
-      
+
       delete unit._id;
       delete unit.members;
       delete unit.parentUnit;
-      
+
       (user as any).unit = unit
     }
-    
+
     delete user.password
-    
+
     res.json(user)
   }).catch(next)
 })
@@ -52,6 +53,6 @@ meRouter.delete('/tokens/:tokenID', (req, res, next) => {
 
 meRouter.put('/password', (req, res, next) => {
   generatePassword(req.body.password).then(password => {
-    User.findOneAndUpdate({ _id: req.params.id, group: 'vendors' } , { $set: { password: password } }).then(_ => res.status(204).send()).catch(next)
+    User.findOneAndUpdate({ _id: req.params.id, group: 'vendors' }, { $set: { password: password } }).then(_ => res.status(204).send()).catch(next)
   }).catch(next)
 })

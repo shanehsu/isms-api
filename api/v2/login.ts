@@ -1,11 +1,12 @@
 import express = require('express')
-import { User, Group, TokenInterface }  from './../../libs/models'
+import { User, Group, TokenInterface } from './../../libs/models'
 import request = require('request-promise-native')
 import crypto = require('crypto')
 
 export let loginRouter = express.Router()
 
 loginRouter.use((req, res, next) => {
+  if (req.method.toLowerCase() == 'options') { next(); return; }
   let group = req['group'] as Group
   if (group == "guests") {
     next()
@@ -63,7 +64,7 @@ loginRouter.post('/standalone', (req, res, next) => {
             let digest = key.toString('hex')
             if (digest == user.password.hash) {
               let t = token(req)
-              
+
               User.findByIdAndUpdate(user.id, {
                 $push: { tokens: t }
               }).then(_ => {

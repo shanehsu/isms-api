@@ -2,16 +2,17 @@
 
 import mongoose = require('mongoose')
 
-const  ObjectId = mongoose.Schema.Types.ObjectId
+const ObjectId = mongoose.Schema.Types.ObjectId
 
 export interface UnitInterface extends mongoose.Document {
   name: string
   identifier: number
   parentUnit?: string
-  
+
   members: {
     none: string[],
     agents: string[],
+    vendors: string[],
     docsControl?: string,
     manager?: string
   }
@@ -47,6 +48,11 @@ export const UnitSchema = new mongoose.Schema({
       required: false
     },
     agents: {
+      type: [ObjectId],
+      required: true,
+      default: []
+    },
+    vendors: {
       type: [ObjectId],
       required: true,
       default: []

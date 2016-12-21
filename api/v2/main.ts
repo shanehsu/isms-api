@@ -8,6 +8,8 @@ import { usersRouter } from './users'
 import { meRouter } from './me'
 import { registerRouter } from './register'
 import { formsRouter } from './forms'
+import { recordsRouter } from './records'
+import { unitsRouter } from './units'
 export let V2Router = express.Router()
 
 V2Router.use((req, res, next) => {
@@ -17,14 +19,14 @@ V2Router.use((req, res, next) => {
       req['user'] = user
       req['authenticated'] = true
       req['group'] = user.group
-      
+
       next()
     }).catch(err => next(err))
   } else {
     req['user'] = undefined
     req['authenticated'] = false
     req['group'] = 'guests' as Group
-    
+
     next()
   }
 })
@@ -35,4 +37,5 @@ V2Router.use('/users', usersRouter)
 V2Router.use('/me', meRouter)
 V2Router.use('/register', registerRouter)
 V2Router.use('/forms', formsRouter)
-
+V2Router.use('/records', recordsRouter)
+V2Router.use('/units', unitsRouter)

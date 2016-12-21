@@ -51,6 +51,6 @@ process.on('SIGINT', function() {
 // BRING IN YOUR SCHEMAS & MODELS
 import * as Models from './../libs/models'
 
-mongoose.Promise = Promise
+mongoose.Promise = global.Promise
 
 module.exports = mongoose

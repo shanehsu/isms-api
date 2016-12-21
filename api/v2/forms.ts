@@ -1,10 +1,11 @@
 import express = require('express')
 
-import { Group, Form, FormInterface, FormRevisionInterface, FieldInterface } from './../../libs/models'
+import { Group, Form, FormInterface, FormRevisionInterface, FieldInterface, Unit, User } from './../../libs/models'
 
 export let formsRouter = express.Router()
 
 formsRouter.use((req, res, next) => {
+  if (req.method.toLowerCase() == 'options') { next(); return; }
   if (req['group'] as Group == 'guests') {
     res.status(401).send()
   } else {
@@ -41,7 +42,7 @@ formsRouter.get('/', (req, res, next) => {
           "name": true,
           "revisions": false,
           "latestRevision": {
-            "$arrayElemAt": [ { "$slice": ["$revisions", -1] }, 0 ]
+            "$arrayElemAt": [{ "$slice": ["$revisions", -1] }, 0]
           }
         }
       }, {
@@ -53,7 +54,7 @@ formsRouter.get('/', (req, res, next) => {
 
 formsRouter.get('/:id', (req, res, next) => {
   let formID = req.params.id
-  
+
   /* Notes
    * There are three scopes associated with "Forms" collection,
    * *admin* and *view*
@@ -66,9 +67,19 @@ formsRouter.get('/:id', (req, res, next) => {
    */
 
   if (req['group'] as Group == 'admins' && req.query.scope && req.query.scope == 'admin') {
-    Form.findById(formID).then(form => res.json(form)).catch(next)
+    Form.findById(formID).then(form => {
+      if (!form) {
+        res.status(404).send()
+        return
+      }
+      res.json(form)
+    }).catch(next)
   } else {
     Form.findById(formID).then(form => {
+      if (!form) {
+        res.status(404).send()
+        return
+      }
       if (req.query.revision) {
         // The user wants specific revision
         let revision = +req.query.revision
@@ -110,7 +121,7 @@ formsRouter.get('/:id', (req, res, next) => {
               "name": true,
               "revisions": false,
               "revision": {
-                "$arrayElemAt": [ { "$slice": ["$revisions", -1] }, 0 ]
+                "$arrayElemAt": [{ "$slice": ["$revisions", -1] }, 0]
               }
             }
           }
@@ -126,7 +137,36 @@ formsRouter.get('/:id', (req, res, next) => {
   }
 })
 
+formsRouter.get('/associatedAgents', (req, res, next) => {
+  let userId: string = req['user'].id
+  let group: Group = req['group']
+
+  if (group != 'vendors') {
+    res.status(401).send()
+    return
+  }
+
+  Unit.findOne({
+    "members.vendors": userId
+  }).then(unit => {
+    if (!unit) {
+      res.status(500).send(`不屬於任何單位`)
+      return
+    }
+
+    User.find({ _id: unit.members.agents }).then(agents => {
+      res.json(agents.map(a => {
+        return {
+          id: a.id,
+          name: a.name
+        }
+      }))
+    }).catch(next)
+  }).catch(next)
+})
+
 formsRouter.use((req, res, next) => {
+  if (req.method.toLowerCase() == 'options') { next(); return; }
   if (req['group'] as Group == 'admins') {
     next()
   } else {
@@ -159,6 +199,10 @@ revisionsRouter.get('/:revision', (req, res, next) => {
   let revision = +req.params.revision
 
   Form.findById(formID).then(form => {
+    if (!form) {
+      res.status(404).send()
+      return
+    }
     let target: FormRevisionInterface | undefined = form.revisions.find(rev => rev.revision == revision)
     if (target) {
       res.json(target)
@@ -171,6 +215,10 @@ revisionsRouter.get('/:revision', (req, res, next) => {
 revisionsRouter.post('/', (req, res, next) => {
   let formID = req.params.formID
   Form.findById(formID).then(form => {
+    if (!form) {
+      res.status(404).send()
+      return
+    }
     let nextRevision: Number = 1
     if (form.revisions && form.revisions.length > 0) {
       let latestRevision = form.revisions[form.revisions.length - 1]
@@ -196,15 +244,15 @@ revisionsRouter.put('/:revision', (req, res, next) => {
     "_id": formID,
     "revisions": {
       "$elemMatch": {
-          "revision": revision,
-          "published": false
+        "revision": revision,
+        "published": false
       }
     }
   }, {
-    "$set": {
+      "$set": {
         "revisions.$": req.body
-    }
-  }).then(_ => res.status(201).send()).catch(next)
+      }
+    }).then(_ => res.status(201).send()).catch(next)
 })
 
 revisionsRouter.delete('/:revision', (req, res, next) => {
@@ -214,8 +262,8 @@ revisionsRouter.delete('/:revision', (req, res, next) => {
   Form.findOneAndUpdate({
     "_id": formID
   }, {
-    "$pull": {
+      "$pull": {
         "revisions.revision": revision
-    }
-  }).then(_ => res.status(201).send()).catch(next)
+      }
+    }).then(_ => res.status(201).send()).catch(next)
 })
