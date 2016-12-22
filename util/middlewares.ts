@@ -20,5 +20,5 @@ export function noCache(req: Request, res: Response, next: Next) {
 }
 
 export function randomResponseTimeDelay(req: Request, res: Response, next: Next) {
-  setTimeout(() => { next() }, Math.random() * 750 + 1250)
+  setTimeout(() => { next() }, Math.random() * 750 + 250)
 }

@@ -12,11 +12,9 @@ usersRouter.use((req, res, next) => {
     next()
   }
 })
-
 usersRouter.get('/', (req, res, next) => {
   User.find({}, { password: 0, tokens: 0 }).then(users => res.json(users)).catch(next)
 })
-
 usersRouter.get('/:id', (req, res, next) => {
   User.findById(req.params.id, { password: 0, "tokens.token": 0 }).then(user => {
     if (!user) {
@@ -26,14 +24,17 @@ usersRouter.get('/:id', (req, res, next) => {
     res.json(user)
   }).catch(next)
 })
-
 usersRouter.post('/', (req, res, next) => {
   User.create({}).then(user => res.status(201).send(user.id)).catch(next)
 })
-
+usersRouter.post('/:userId/actions/confirm', (req, res, next) => {
+  let userId: string = req.params.userId
+  User.findByIdAndUpdate(userId, { confirmed: true }).then(_ => res.status(201).send()).catch(next)
+})
 usersRouter.put('/:id', (req, res, next) => {
   delete req.body.tokens
   delete req.body.password
+  delete req.body.confirmed
 
   User.findById(req.params.id).then(user => {
     if (!user) {

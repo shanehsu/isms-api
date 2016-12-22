@@ -7,6 +7,9 @@ import { Form } from './../../libs/models'
 
 export let recordsRouter = express.Router()
 
+// TODO: Signature List Not Required on some Form
+// TODO: Signature List has to remove stuff
+
 function getAllChildren(unitId: string): Promise<string[]> {
   return new Promise((resolve, reject) => {
     Unit.find().then(units => {
