@@ -3,6 +3,7 @@
 import mongoose = require('mongoose')
 
 export interface TokenInterface {
+  id: string
   token: string
   origin: string
   userAgent: string

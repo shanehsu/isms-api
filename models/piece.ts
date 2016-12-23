@@ -3,6 +3,7 @@
 import mongoose = require('mongoose')
 
 export interface PieceInterface extends mongoose.Document {
+  id: string
   date: Date
   summary: string
   source: string

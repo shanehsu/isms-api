@@ -1,15 +1,16 @@
 'use strict'
 
-import mongoose     = require('mongoose')
+import mongoose = require('mongoose')
 import FormRevision = require('./form-revision')
 
 export interface FormInterface extends mongoose.Document {
+  id: string
   identifier?: string
   name?: string
   revisions?: FormRevision.FormRevisionInterface[]
 }
 
-export const FormSchema = new mongoose.Schema ({
+export const FormSchema = new mongoose.Schema({
   identifier: {
     type: String,
     required: true,

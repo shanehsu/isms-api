@@ -4,6 +4,7 @@ import mongoose = require('mongoose')
 import Field = require('./field')
 
 export interface FormRevisionInterface extends mongoose.Document {
+  id: string
   revision: number
   signatures: boolean
   skipImmediateChief: boolean

@@ -1,12 +1,13 @@
 'use strict'
 
 import mongoose = require('mongoose')
-import Token    = require('./token')
-import {PasswordInterface, PasswordSchema} from './password'
+import Token = require('./token')
+import { PasswordInterface, PasswordSchema } from './password'
 
 export type Group = "admins" | "securityPersonnel" | "users" | "vendors" | "guests"
 
 export interface UserInterface extends mongoose.Document {
+  id: string
   email: string
   name: string
   password?: PasswordInterface

@@ -5,6 +5,7 @@ import mongoose = require('mongoose')
 const ObjectId = mongoose.Schema.Types.ObjectId
 
 export interface UnitInterface extends mongoose.Document {
+  id: string
   name: string
   identifier: number
   parentUnit?: string

@@ -1,17 +1,18 @@
 'use strict'
 
 import mongoose = require('mongoose')
-import Field    = require('./field')
+import Field = require('./field')
 
-const  ObjectId = mongoose.Schema.Types.ObjectId
+const ObjectId = mongoose.Schema.Types.ObjectId
 
 export interface RecordInterface extends mongoose.Document {
+  id: string
   formID?: string
   formRevision?: string
   owningUnit?: string
   created?: Date
   serial?: number
-  generatedSerial?: string  
+  generatedSerial?: string
   owner?: string
   signatures?: {
     personnel: string,
@@ -21,7 +22,7 @@ export interface RecordInterface extends mongoose.Document {
   contents?: any
 }
 
-export const RecordSchema = new mongoose.Schema ({
+export const RecordSchema = new mongoose.Schema({
   // 對應到表單的格式
   formID: {
     type: ObjectId,
@@ -31,20 +32,20 @@ export const RecordSchema = new mongoose.Schema ({
     type: ObjectId,
     required: false
   },
-  
+
   // 對應到一個單位
   owningUnit: {
     type: ObjectId,
     required: false
   },
-  
+
   // 對應到填寫日
   created: {
     type: Date,
     required: true,
     default: new Date()
   },
-  
+
   // 對應到流水號
   serial: {
     type: Number,
@@ -56,13 +57,13 @@ export const RecordSchema = new mongoose.Schema ({
     type: String,
     required: false
   },
-  
+
   // 對應到填寫者
   owner: {
     type: ObjectId,
     required: false
   },
-  
+
   // 需要簽核的話，對應到簽核者
   signatures: {
     type: [
@@ -74,7 +75,7 @@ export const RecordSchema = new mongoose.Schema ({
     ],
     required: false
   },
-  
+
   // 表單資料
   contents: {
     type: mongoose.Schema.Types.Mixed,
