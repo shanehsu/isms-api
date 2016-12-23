@@ -5,7 +5,7 @@ import mongoose = require('mongoose')
 const ObjectId = mongoose.Schema.Types.ObjectId
 
 export interface FieldInterface extends mongoose.Document {
-  id: string
+  id?: string
   name: string
   type: string
   hint?: string

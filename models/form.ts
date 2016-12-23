@@ -4,7 +4,7 @@ import mongoose = require('mongoose')
 import FormRevision = require('./form-revision')
 
 export interface FormInterface extends mongoose.Document {
-  id: string
+  id?: string
   identifier?: string
   name?: string
   revisions?: FormRevision.FormRevisionInterface[]

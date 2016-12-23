@@ -6,7 +6,7 @@ import Field = require('./field')
 const ObjectId = mongoose.Schema.Types.ObjectId
 
 export interface RecordInterface extends mongoose.Document {
-  id: string
+  id?: string
   formID?: string
   formRevision?: string
   owningUnit?: string

@@ -7,7 +7,7 @@ import { PasswordInterface, PasswordSchema } from './password'
 export type Group = "admins" | "securityPersonnel" | "users" | "vendors" | "guests"
 
 export interface UserInterface extends mongoose.Document {
-  id: string
+  id?: string
   email: string
   name: string
   password?: PasswordInterface
