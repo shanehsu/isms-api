@@ -36,27 +36,19 @@ export const UnitSchema = new mongoose.Schema({
   },
   members: {
     none: {
-      type: [ObjectId],
-      require: true,
-      default: []
+      type: [ObjectId]
     },
     manager: {
       type: ObjectId,
-      required: false
     },
     docsControl: {
-      type: ObjectId,
-      required: false
+      type: ObjectId
     },
     agents: {
-      type: [ObjectId],
-      required: true,
-      default: []
+      type: [ObjectId]
     },
     vendors: {
-      type: [ObjectId],
-      required: true,
-      default: []
+      type: [ObjectId]
     }
   }
 })
