@@ -13,7 +13,7 @@ formsRouter.use((req, res, next) => {
   }
 })
 
-formsRouter.get('/', (req, res, next) => {
+formsRouter.get('/', async (req, res, next) => {
   /* Notes
    * There are three scopes associated with "Forms" collection,
    * *admin* and *fill*
@@ -23,37 +23,64 @@ formsRouter.get('/', (req, res, next) => {
 
   if (req['group'] as Group == 'admins' && req.query.scope && req.query.scope == 'admin') {
     // the *admin* scope
-    Form.aggregate({
-      "$project": {
-        "identifier": true,
-        "name": true,
-        "revisions": "$revisions.revision"
-      }
-    }).then(forms => res.json(forms)).catch(next)
-  } else {
-    // the *fill* scope
-    let matchObject = {}
-    matchObject['latestRevision.group.' + req['group']] = true
-
-    Form.aggregate([
-      {
+    try {
+      let forms = await Form.aggregate({
         "$project": {
           "identifier": true,
-          "name": true,
-          "revisions": false,
-          "latestRevision": {
-            "$arrayElemAt": [{ "$slice": ["$revisions", -1] }, 0]
+          "name": true
+        }
+      })
+      res.json(forms)
+    } catch (err) {
+      next(err)
+    }
+  } else {
+    // the *fill* scope
+    let group: Group = req['group']
+    try {
+      let forms = await Form.aggregate([
+        {
+          // 取得已經發布的版本
+          "$project": {
+            "identifier": true,
+            "name": true,
+            "revisions": {
+              "$filter": {
+                "input": "$revisions",
+                "as": "revision",
+                "cond": {
+                  "$and": [
+                    { "$eq": ["$$revision.published", true] }
+                  ]
+                }
+              }
+            }
+          }
+        }, {
+          // 取得已經發布的最新版本
+          "$project": {
+            "identifier": true,
+            "name": true,
+            "latestRevision": {
+              "$arrayElemAt": [{ "$slice": ["$revisions", -1] }, 0]
+            }
+          }
+        }, {
+          // 看目前的這個人可不可以填寫該版本
+          "$match": {
+            "latestRevision.groups": group
           }
         }
-      }, {
-        "$match": matchObject
-      }
-    ]).then(forms => res.json(forms)).catch(next)
+      ])
+      res.json(forms)
+    } catch (err) {
+      next(err)
+    }
   }
 })
 
-formsRouter.get('/:id', (req, res, next) => {
-  let formID = req.params.id
+formsRouter.get('/:id', async (req, res, next) => {
+  let formId = req.params.id
 
   /* Notes
    * There are three scopes associated with "Forms" collection,
@@ -67,73 +94,38 @@ formsRouter.get('/:id', (req, res, next) => {
    */
 
   if (req['group'] as Group == 'admins' && req.query.scope && req.query.scope == 'admin') {
-    Form.findById(formID).then(form => {
-      if (!form) {
-        res.status(404).send()
-        return
-      }
+    // 管理員
+    try {
+      let form = await Form.findById(formId)
       res.json(form)
-    }).catch(next)
+    } catch (err) {
+      next(err)
+    }
   } else {
-    Form.findById(formID).then(form => {
-      if (!form) {
-        res.status(404).send()
-        return
-      }
-      if (req.query.revision) {
-        // The user wants specific revision
-        let revision = +req.query.revision
-        Form.aggregate([
-          {
-            "$match": {
-              "_id": formID
-            }
-          }, {
-            "$unwind": "revisions"
-          }, {
-            "$project": {
-              "identifier": true,
-              "name": true,
-              "revision": "revisions"
-            }
-          }, {
-            "$match": {
-              "revision.revision": +req.query.revision
-            }
-          }
-        ]).then((form: any) => {
-          if (form.revision.group[req['group']]) {
-            res.json(form);
-          } else {
-            res.status(401).send();
-          }
-        }).catch(next)
+    // 使用者
+    let form = await Form.findById(formId)
+    if (req.query.revision) {
+      // 使用者需要其中一個版本
+      let requestedRevisionNumber = req.query.revision
+      let requestedRevision = form.revisions.find(revision => revision.number = requestedRevisionNumber)
+      if (requestedRevision && requestedRevision.groups.includes(req['group'])) {
+        delete form.revisions
+        form['revision'] = requestedRevision
+        res.json(form)
       } else {
-        // The user wants the latest revision
-        Form.aggregate([
-          {
-            "$match": {
-              "_id": formID
-            }
-          }, {
-            "$project": {
-              "identifier": true,
-              "name": true,
-              "revisions": false,
-              "revision": {
-                "$arrayElemAt": [{ "$slice": ["$revisions", -1] }, 0]
-              }
-            }
-          }
-        ]).then((form: any) => {
-          if (form.revision.group[req['group']]) {
-            res.json(form);
-          } else {
-            res.status(401).send();
-          }
-        }).catch(next)
+        res.status(requestedRevision ? 401 : 404).send()
       }
-    }).catch(next)
+    } else {
+      // 找到最新的版本，檢查是否有權力
+      let latestRevision = form.revisions[form.revisions.length - 1]
+      if (latestRevision && latestRevision.groups.includes(req['group'])) {
+        delete form.revisions
+        form['revision'] = latestRevision
+        res.json(form)
+      } else {
+        res.status(latestRevision ? 401 : 404).send()
+      }
+    }
   }
 })
 
@@ -203,7 +195,7 @@ revisionsRouter.get('/:revision', (req, res, next) => {
       res.status(404).send()
       return
     }
-    let target: FormRevisionInterface | undefined = form.revisions.find(rev => rev.revision == revision)
+    let target: FormRevisionInterface | undefined = form.revisions.find(rev => rev.number == revision)
     if (target) {
       res.json(target)
     } else {
@@ -222,7 +214,7 @@ revisionsRouter.post('/', (req, res, next) => {
     let nextRevision: Number = 1
     if (form.revisions && form.revisions.length > 0) {
       let latestRevision = form.revisions[form.revisions.length - 1]
-      let revision = latestRevision.revision
+      let revision = latestRevision.number
       nextRevision = Math.round((revision + 0.1) * 10) / 10
     }
 

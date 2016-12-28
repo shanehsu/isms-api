@@ -152,7 +152,7 @@ recordsRouter.post('/', (req, res, next) => {
     // 3. 有單位歸屬
 
     // 判斷 (1)
-    if (!latestRevision.group[<Group>req['group']]) {
+    if (!latestRevision.groups.includes(req['group'])) {
       res.status(401).send()
       return
     }

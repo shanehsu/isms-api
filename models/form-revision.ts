@@ -2,26 +2,23 @@
 
 import mongoose = require('mongoose')
 import Field = require('./field')
+import { Group } from './user'
 
 export interface FormRevisionInterface extends mongoose.Document {
   id?: string
-  revision: number
+  number: number
   signatures: boolean
   skipImmediateChief: boolean
   published: boolean
-  group: {
-    "securityPersonnel": boolean,
-    "users": boolean,
-    "vendors": boolean
-  }
-  secrecyLevel: number
+  groups: Group[]
+  secrecy: number
   template: string
   fields: Field.FieldInterface[]
 }
 
 export const FormRevisionSchema = new mongoose.Schema({
   // 版本編號
-  revision: {
+  number: {
     type: Number,
     required: true
   },
@@ -42,21 +39,13 @@ export const FormRevisionSchema = new mongoose.Schema({
     default: false
   },
   // 填表群組
-  group: {
-    type: {
-      "securityPersonnel": Boolean,
-      "users": Boolean,
-      "vendors": Boolean
-    },
+  groups: {
+    type: [String],
     required: true,
-    default: {
-      "securityPersonnel": false,
-      "users": false,
-      "vendors": false
-    }
+    default: ["securityPersonnel"]
   },
   // 機密等級
-  secrecyLevel: {
+  secrecy: {
     type: Number,
     required: true,
     default: 4
