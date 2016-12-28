@@ -31,8 +31,7 @@ export const UnitSchema = new mongoose.Schema({
     required: true
   },
   parentUnit: {
-    type: ObjectId,
-    required: false
+    type: ObjectId
   },
   members: {
     none: {
