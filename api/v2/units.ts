@@ -32,7 +32,7 @@ unitsRouter.get('/', (req, res, next) => {
 
 unitsRouter.post('/', (req, res, next) => {
   // 新增單位
-  Unit.create({}).then(_ => res.status(201).send()).catch(next)
+  Unit.create({}).then(unit => res.status(201).send(unit.id)).catch(next)
 })
 
 unitsRouter.put('/:unitId', async (req, res, next) => {
@@ -90,24 +90,35 @@ unitsRouter.put('/:unitId', async (req, res, next) => {
   // 檢查方法：將其他單位的成員全部加入一個集合，更新後的單位成員必不能在該集合中
   let occupiedUsers = new Set<string>()
   for (let unit of units) {
+    if (unit.id == unitId) {
+      continue
+    }
     let members = [
-      unit.members.docsControl,
-      unit.members.manager,
       ...unit.members.agents,
       ...unit.members.vendors,
       ...unit.members.none
     ]
+    if (unit.members.manager) {
+      members.push(unit.members.manager)
+    }
+    if (unit.members.docsControl) {
+      members.push(unit.members.docsControl)
+    }
     for (let member of members) {
       occupiedUsers.add(member)
     }
   }
   let newMembers = [
-    unitsDictionary[unitId].members.docsControl,
-    unitsDictionary[unitId].members.manager,
     ...unitsDictionary[unitId].members.agents,
     ...unitsDictionary[unitId].members.vendors,
     ...unitsDictionary[unitId].members.none
   ]
+  if (unitsDictionary[unitId].members.manager) {
+    newMembers.push(unitsDictionary[unitId].members.manager)
+  }
+  if (unitsDictionary[unitId].members.docsControl) {
+    newMembers.push(unitsDictionary[unitId].members.docsControl)
+  }
 
   // a. 成員必須存在於資料庫中
   let users: UserInterface[] = []
@@ -122,11 +133,16 @@ unitsRouter.put('/:unitId', async (req, res, next) => {
     return
   }
 
-  if (users.length == newMembers.length) {
+  if (users.length != newMembers.length) {
     next(new Error('成員不存在於資料庫中'))
     return
   }
 
+  console.log('new members')
+  console.dir(newMembers)
+
+  console.log('occupied')
+  console.dir(occupiedUsers)
   for (let member of newMembers) {
     // b. 必須不存在於集合中
     if (occupiedUsers.has(member)) {
@@ -142,7 +158,7 @@ unitsRouter.put('/:unitId', async (req, res, next) => {
     return
   }
 
-  res.send(201)
+  res.status(201).send()
 })
 
 unitsRouter.delete('/:unitId', (req, res, next) => {
