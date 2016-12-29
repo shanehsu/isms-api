@@ -1,9 +1,9 @@
 import mongoose = require('mongoose');
 import { generatePassword } from './auth'
 
-const host = process.env['MONGO_HOST'] ? process.env['MONGO_HOST'] : 'localhost' 
+const host = process.env['MONGO_HOST'] ? process.env['MONGO_HOST'] : 'localhost'
 const port = process.env['MONGO_PORT'] ? +process.env['MONGO_PORT'] : 27017
-const db   = process.env['MONGO_DB'] ? process.env['MONGO_DB'] : 'isms' 
+const db = process.env['MONGO_DB'] ? process.env['MONGO_DB'] : 'isms'
 const db_uri = `mongodb://${host}:${port}/${db}`
 
 mongoose.connect(db_uri)
@@ -11,12 +11,12 @@ mongoose.connect(db_uri)
 // 成功連線的訊息
 mongoose.connection.on('connected', () => {
   console.log('已成功連線至 ' + db_uri)
-  
+
   // 若是新資料庫，沒有使用者
   Models.User.count({}).then(count => {
     if (count == 0) {
       Models.User.create({
-        email: 'hsu.pengjun@icloud.com',
+        email: 'changkc@cc.ncue.edu.tw',
         name: '徐鵬鈞',
         group: "admins",
         tokens: []
@@ -41,7 +41,7 @@ mongoose.connection.on('disconnected', () => {
 })
 
 // 當程式結束時，斷線的訊息
-process.on('SIGINT', function() {
+process.on('SIGINT', function () {
   mongoose.connection.close(() => {
     console.log('已斷線')
     process.exit(0)

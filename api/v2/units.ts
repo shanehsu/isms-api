@@ -152,7 +152,12 @@ unitsRouter.put('/:unitId', async (req, res, next) => {
   }
 
   try {
-    let result = await Unit.findByIdAndUpdate(unitId, { "$set": update })
+    if (update.parentUnit == '') {
+      delete update.parentUnit
+      let result = await Unit.findByIdAndUpdate(unitId, { "$set": update, "$unset": { parentUnit: '' } })
+    } else {
+      let result = await Unit.findByIdAndUpdate(unitId, { "$set": update })
+    }
   } catch (err) {
     next(err)
     return
