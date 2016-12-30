@@ -59,7 +59,7 @@ unitsRouter.put('/:unitId', async (req, res, next) => {
 
   // 檢查兩件事情
   // 1. 新的單位歸屬是否會造成循環
-  // 2. 新的成員歸屬是否合理，有沒有成員屬於兩個單位或是成員不存在
+  // 2. 新的成員歸屬是否合理，有沒有成員屬於兩個單位或是成員不存在或是成員出現在承辦人兩次
 
   // 將要檢查的資料合併
   let update = <UnitInterface>req.body
@@ -138,15 +138,19 @@ unitsRouter.put('/:unitId', async (req, res, next) => {
     return
   }
 
-  console.log('new members')
-  console.dir(newMembers)
-
-  console.log('occupied')
-  console.dir(occupiedUsers)
   for (let member of newMembers) {
     // b. 必須不存在於集合中
     if (occupiedUsers.has(member)) {
       next(new Error('成員目前已經屬於另外一個單位'))
+      return
+    }
+  }
+
+  // c. 成員不可以出現在承辦人兩次
+  for (let i = 0; i < update.members.agents.length; i++) {
+    let agent = update.members.agents[i]
+    if (update.members.agents.lastIndexOf(agent) != i) {
+      next(new Error(`成員 ${agent} 出現兩次`))
       return
     }
   }
