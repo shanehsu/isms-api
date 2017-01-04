@@ -21,14 +21,11 @@ formsRouter.get('/', async (req, res, next) => {
    * and requests that scope through ?scope=admin
    */
 
-  if (req['group'] as Group == 'admins' && req.query.scope && req.query.scope == 'admin') {
-    // the *admin* scope
+  if (req.group == 'admins' && req.query.scope && req.query.scope == 'admin') {
     try {
-      let forms = await Form.aggregate({
-        "$project": {
-          "identifier": true,
-          "name": true
-        }
+      let forms = await Form.find({}, {
+        "identifier": true,
+        "name": true
       })
       res.json(forms)
     } catch (err) {
@@ -36,7 +33,7 @@ formsRouter.get('/', async (req, res, next) => {
     }
   } else {
     // the *fill* scope
-    let group: Group = req['group']
+    let group: Group = req.group
     try {
       let forms = await Form.aggregate([
         {
@@ -79,53 +76,70 @@ formsRouter.get('/', async (req, res, next) => {
   }
 })
 
-formsRouter.get('/:id', async (req, res, next) => {
-  let formId = req.params.id
+formsRouter.get('/:formId', async (req, res, next) => {
+  let formId = req.params.formId
 
-  /* Notes
-   * There are three scopes associated with "Forms" collection,
-   * *admin* and *view*
-   * One may only be using the *admin* scope, if one is an admin,
-   * and requests that scope through ?scope=admin
-   * In the *view* scope, the user can request specific revision through,
-   * ?revision=1.3
-   * If none was given, then the latest is always retrieved unless not
-   * authorized.
+  /* 備註
+   * 查詢字串：
+   * - scope {string} - 若使用者是管理員，則可以使用 `admin` 作為查詢值，
+   *                    取得表單中所有資訊
+   * - revisionNumber {number} - 可以用來取得特定版本，範例：
+   *                             `revisionNumber=1.2`
    */
 
-  if (req['group'] as Group == 'admins' && req.query.scope && req.query.scope == 'admin') {
-    // 管理員
-    try {
-      let form = await Form.findById(formId)
-      res.json(form)
-    } catch (err) {
-      next(err)
+  try {
+    let form = await Form.findById(formId).exec()
+    // 找不到該表單
+    if (!form) {
+      res.status(404).send(`找不到 ID 為 %{formId} 的表單`)
+      return
     }
-  } else {
-    // 使用者
-    let form = await Form.findById(formId)
-    if (req.query.revision) {
-      // 使用者需要其中一個版本
-      let requestedRevisionNumber = req.query.revision
-      let requestedRevision = form.revisions.find(revision => revision.number = requestedRevisionNumber)
-      if (requestedRevision && requestedRevision.groups.includes(req['group'])) {
-        delete form.revisions
-        form['revision'] = requestedRevision
-        res.json(form)
-      } else {
-        res.status(requestedRevision ? 401 : 404).send()
+
+    // 管理員
+    if (req.query.scope == 'admin') {
+      res.json(form)
+      return
+    }
+
+    let revision: FormRevisionInterface = null
+
+    // 回傳單一版本的狀況
+    if (req.query.revisionNumber) {
+      // 查詢特定版本 - 使用 `revisionNumber`
+      let number = Number.parseFloat(req.query.revisionNumber)
+      if (Number.isNaN(number)) {
+        res.status(500).send(`無法將 ${req.query.revisionNumber} 解析為數字。`)
+        return
+      }
+      revision = form.revisions.filter(rev => rev.number == number)[0]
+      if (!revision) {
+        res.status(404).send(`找不到版本號為 ${number} 的版本`)
+        return
+      }
+      if (!revision.published) {
+        res.status(401).send(`版本尚未發布`)
+        return
       }
     } else {
-      // 找到最新的版本，檢查是否有權力
-      let latestRevision = form.revisions[form.revisions.length - 1]
-      if (latestRevision && latestRevision.groups.includes(req['group'])) {
-        delete form.revisions
-        form['revision'] = latestRevision
-        res.json(form)
-      } else {
-        res.status(latestRevision ? 401 : 404).send()
+      // 預設值 - 使用最新版本
+      revision = form.revisions.filter(rev => rev.published).slice(-1)[0]
+      if (!revision) {
+        res.status(404).send(`找不到可用的表單版本`)
+        return
       }
     }
+
+    if (!revision.groups.includes(req.group)) {
+      res.status(401).send(`您沒有查看該表單的權利`)
+      return
+    }
+    let response = form as any
+    delete response.revisions
+    response.revision = revision
+    res.json(response)
+  } catch (err) {
+    next(err)
+    return
   }
 })
 
@@ -147,10 +161,10 @@ formsRouter.get('/associatedAgents', (req, res, next) => {
     }
 
     User.find({ _id: unit.members.agents }).then(agents => {
-      res.json(agents.map(a => {
+      res.json(agents.map(agent => {
         return {
-          id: a.id,
-          name: a.name
+          id: agent.id,
+          name: agent.name
         }
       }))
     }).catch(next)
@@ -186,24 +200,6 @@ formsRouter.delete('/:id', (req, res, next) => {
 let revisionsRouter = express.Router()
 formsRouter.use('/:formID/revisions', revisionsRouter);
 
-revisionsRouter.get('/:revision', (req, res, next) => {
-  let formID = req.params.formID
-  let revision = +req.params.revision
-
-  Form.findById(formID).then(form => {
-    if (!form) {
-      res.status(404).send()
-      return
-    }
-    let target: FormRevisionInterface | undefined = form.revisions.find(rev => rev.number == revision)
-    if (target) {
-      res.json(target)
-    } else {
-      res.status(404).send()
-    }
-  }).catch(next)
-})
-
 revisionsRouter.post('/', (req, res, next) => {
   let formID = req.params.formID
   Form.findById(formID).then(form => {
@@ -228,15 +224,50 @@ revisionsRouter.post('/', (req, res, next) => {
   })
 })
 
-revisionsRouter.put('/:revision', (req, res, next) => {
-  let formID = req.params.formID
-  let revision = +req.params.revision
+revisionsRouter.put('/:revisionId', async (req, res, next) => {
+  let formId = req.params.formID
+  let revisionId = req.params.revisionId
+
+  let targetForm: FormInterface = null
+  try {
+    targetForm = await Form.findById(formId)
+    if (!targetForm) {
+      res.status(404).send()
+      return
+    }
+  } catch (err) {
+    next(err)
+    return
+  }
+
+  let targetRevision = targetForm.revisions.find(rev => rev.id == revisionId)
+  if (!targetRevision) {
+    res.status(404).send()
+    return
+  }
+
+  if (req.body.number) {
+    // 版本號可能有更動
+    let revisionsWithSameNumber = targetForm.revisions.filter(rev => rev.number == req.body.number)
+    if (revisionsWithSameNumber.length >= 2) {
+      res.status(500).send()
+      return
+    } else if (revisionsWithSameNumber.length == 1 && !(revisionsWithSameNumber[0].id == revisionId)) {
+      res.status(500).send()
+      return
+    }
+  }
+
+  if (targetRevision.published) {
+    res.status(500).send()
+    return
+  }
 
   Form.findOneAndUpdate({
-    "_id": formID,
+    "_id": formId,
     "revisions": {
       "$elemMatch": {
-        "revision": revision,
+        "_id": revisionId,
         "published": false
       }
     }

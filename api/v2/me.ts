@@ -15,7 +15,7 @@ meRouter.use((req, res, next) => {
 })
 
 meRouter.get('/', (req, res, next) => {
-  let user: UserInterface = req['user']
+  let user = req.user
 
   Unit.find({
     "$or": [

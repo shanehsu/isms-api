@@ -23,7 +23,7 @@ V2Router.use((req, res, next) => {
       next()
     }).catch(err => next(err))
   } else {
-    req['user'] = undefined
+    req['user'] = null
     req['authenticated'] = false
     req['group'] = 'guests' as Group
 
