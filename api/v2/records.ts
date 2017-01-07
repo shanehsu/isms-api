@@ -1,9 +1,9 @@
 import express = require('express')
 import { UserInterface } from './../../libs/models'
 import { Group } from './../../libs/models'
-import { Record } from './../../libs/models'
+import { Record, RecordInterface } from './../../libs/models'
 import { Unit, UnitInterface } from './../../libs/models'
-import { Form } from './../../libs/models'
+import { Form, FormInterface } from './../../libs/models'
 
 export let recordsRouter = express.Router()
 
@@ -136,108 +136,152 @@ recordsRouter.get('/:id', (req, res, next) => {
     }
   }).catch(next)
 })
-recordsRouter.post('/', (req, res, next) => {
+recordsRouter.post('/', async (req, res, next) => {
   let userId: string = req['user'].id
   let formId: string = req.body.formId
   let contents = <{ [fieldId: string]: any }>req.body.contents
 
-  Form.findById(formId).then(form => {
-    if (!form) {
-      res.status(500).send(`表單不存在`)
-      return
-    }
-    let latestRevision = form.revisions.slice(-1)[0]
-    // 1. 看得到那一個表單
-    // 2. 是承辦人或是廠商
-    // 3. 有單位歸屬
+  let form: FormInterface = null
+  try {
+    form = await Form.findById(formId)
+  } catch (err) {
+    next(err)
+    return
+  }
 
-    // 判斷 (1)
-    if (!latestRevision.groups.includes(req['group'])) {
-      res.status(401).send()
-      return
-    }
+  if (!form) {
+    next(`表單不存在`)
+  }
 
-    // 判斷 (2)(3)
-    Unit.find({
+  let latestRevision = form.revisions.filter(v => v.published).slice(-1)[0]
+  // 1. 看得到那一個表單
+  // 2. 是承辦人或是廠商
+  // 3. 有單位歸屬
+
+  // 判斷 (1)
+  if (!latestRevision.groups.includes(req['group'])) {
+    res.status(401).send()
+    return
+  }
+
+  // 判斷 (2)(3)
+  let unit: UnitInterface = null
+  try {
+    let units = await Unit.find({
       "$or": [
         { "$members.agents": userId },
         { "$members.vendors": userId }
       ]
-    }).then(units => {
-      if (units.length <= 0) {
-        res.status(401).send()
-        return
-      }
+    })
 
-      // 檢查是否有遺漏的欄位
-      for (let field of latestRevision.fields) {
-        let fieldId = field.id
-        if (contents[fieldId] == undefined) {
-          res.status(500).send()
-          return
-        }
-      }
+    if (units.length <= 0) {
+      throw new Error(`找不到使用者的單位`)
+    }
 
-      // 找到下一個編號
-      let thisYear = (new Date()).getFullYear()
-      Record.find({
-        "created": {
-          "$gte": new Date(thisYear, 0, 1, 0, 0, 0),
-          "$lte": new Date(thisYear, 11, 31, 23, 59, 59)
-        }
-      }).sort({ serial: -1 }).limit(1).then(records => {
-        let nextSerial = 0
-        if (records.length >= 0) {
-          nextSerial = records[0].serial + 1;
-        }
+    unit = units[0]
+  } catch (err) {
+    next(err)
+    return
+  }
 
-        // 建立簽核鏈
-        let target = userId
-        let chain = []
+  // 檢查是否有遺漏的欄位
+  for (let field of latestRevision.fields) {
+    let fieldId = field.id
+    if (contents[fieldId] == undefined) {
+      res.status(500).send(`遺失的表單欄位`)
+      return
+    }
+  }
 
-        if (<Group>req['group'] == 'vendors') {
-          // 廠商
-          let associatedAgent: string | undefined = req.body.associatedAgent
-          if (!associatedAgent) {
-            res.status(500).send(`廠商必須指定相關承辦人。`)
-            return
-          } else if (!units[0].members.agents.includes(associatedAgent)) {
-            res.status(500).send(`廠商所指定得相關承辦人必須位於同一個單位。`)
-            return
-          }
-          chain.push(userId)
-          target = associatedAgent
-        }
+  // 找到下一個編號
+  let currentYear = (new Date()).getFullYear()
 
-        getResponsibilityChain(target).then(laterPartOfChain => {
-          chain.push(laterPartOfChain)
-          let signatures = chain.map(p => {
-            return {
-              personnel: p,
-              timestamp: new Date(),
-              signed: false
-            }
-          })
-          signatures[0].signed = true
+  let lastRecord: RecordInterface
 
-          // 建立文件
-          let record = new Record({
-            formID: formId,
-            formRevision: latestRevision.id,
-            owningUnit: units[0].id,
-            created: new Date(),
-            serial: nextSerial,
-            generatedSerial: `${thisYear - 1911}-${units[0].identifier}-${nextSerial}`,
-            owner: userId,
-            signatures: signatures,
-            contents: contents
-          })
+  try {
+    lastRecord = await Record.find({
+      "created": {
+        "$gte": new Date(currentYear, 0, 1, 0, 0, 0),
+        "$lte": new Date(currentYear, 11, 31, 23, 59, 59)
+      },
+      "owningUnit": unit.id
+    }).sort({ serial: -1 }).limit(1)[0]
+  } catch (err) {
+    next(err)
+    return
+  }
 
-          record.save().then(_ => res.status(201).send()).catch(next)
-        }).catch(next)
-      }).catch(next)
-    }).catch(next)
-  }).catch(next)
+  let nextSerial = 1
+  if (!lastRecord) {
+    nextSerial = lastRecord.serial + 1
+  }
+
+  // 建立簽核鏈
+  let target = userId
+  let chain = []
+
+  if (req.group == 'vendors') {
+    // 廠商
+    let associatedAgent: string | undefined = req.body.associatedAgent
+    if (!associatedAgent) {
+      res.status(500).send(`廠商必須指定相關承辦人。`)
+      return
+    } else if (!unit.members.agents.includes(associatedAgent)) {
+      res.status(500).send(`廠商所指定得相關承辦人必須位於同一個單位。`)
+      return
+    }
+    chain.push(userId)
+    target = associatedAgent
+  }
+  chain.push(target)
+
+  // 需要簽核
+  if (latestRevision.signatures) {
+    let laterPartOfChain: string[] = []
+    try {
+      laterPartOfChain = await getResponsibilityChain(target)
+    } catch (err) {
+      next(err)
+      return
+    }
+    if (latestRevision.skipImmediateChief) {
+      laterPartOfChain.splice(0, 1)
+    }
+
+    chain.push(...laterPartOfChain)
+  }
+
+  let signatures = chain.map(p => {
+    return {
+      personnel: p,
+      timestamp: new Date(),
+      signed: false
+    }
+  })
+
+  signatures[0].signed = true
+
+  // 建立文件
+  let record = new Record({
+    formID: formId,
+    formRevision: latestRevision.id,
+    owningUnit: unit.id,
+    created: new Date(),
+    serial: nextSerial,
+    generatedSerial: `${currentYear - 1911}-${unit.identifier}-${nextSerial}`,
+    owner: userId,
+    signatures: signatures,
+    contents: contents
+  })
+
+  try {
+    await record.save()
+  } catch (err) {
+    next(err)
+    return
+  }
+
+  res.status(201).send()
 })
 recordsRouter.post('/:id/actions/sign', (req, res, next) => {
   let userId = (<UserInterface>req['user']).id

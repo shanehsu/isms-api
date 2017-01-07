@@ -67,6 +67,11 @@ formsRouter.get('/', async (req, res, next) => {
           "$match": {
             "latestRevision.groups": group
           }
+        }, {
+          "$project": {
+            "identifier": true,
+            "name": true
+          }
         }
       ])
       res.json(forms)
@@ -91,7 +96,7 @@ formsRouter.get('/:formId', async (req, res, next) => {
     let form = await Form.findById(formId).exec()
     // 找不到該表單
     if (!form) {
-      res.status(404).send(`找不到 ID 為 %{formId} 的表單`)
+      res.status(404).send(`找不到 ID 為 ${formId} 的表單`)
       return
     }
 
@@ -198,11 +203,11 @@ formsRouter.delete('/:id', (req, res, next) => {
 
 /** Revision 相關 **/
 let revisionsRouter = express.Router()
-formsRouter.use('/:formID/revisions', revisionsRouter);
+formsRouter.use('/:formId/revisions', revisionsRouter);
 
 revisionsRouter.post('/', (req, res, next) => {
-  let formID = req.params.formID
-  Form.findById(formID).then(form => {
+  let formId = req.params.formId
+  Form.findById(formId).then(form => {
     if (!form) {
       res.status(404).send()
       return
@@ -214,7 +219,7 @@ revisionsRouter.post('/', (req, res, next) => {
       nextRevision = Math.round((revision + 0.1) * 10) / 10
     }
 
-    Form.findByIdAndUpdate(formID, {
+    Form.findByIdAndUpdate(formId, {
       '$push': {
         revisions: {
           revision: nextRevision,
@@ -225,7 +230,7 @@ revisionsRouter.post('/', (req, res, next) => {
 })
 
 revisionsRouter.put('/:revisionId', async (req, res, next) => {
-  let formId = req.params.formID
+  let formId = req.params.formId
   let revisionId = req.params.revisionId
 
   let targetForm: FormInterface = null
@@ -279,11 +284,11 @@ revisionsRouter.put('/:revisionId', async (req, res, next) => {
 })
 
 revisionsRouter.delete('/:revision', (req, res, next) => {
-  let formID = req.params.formID
+  let formId = req.params.formId
   let revision = +req.params.revision
 
   Form.findOneAndUpdate({
-    "_id": formID
+    "_id": formId
   }, {
       "$pull": {
         "revisions.revision": revision
