@@ -149,8 +149,8 @@ formsRouter.get('/:formId', async (req, res, next) => {
 })
 
 formsRouter.get('/associatedAgents', (req, res, next) => {
-  let userId: string = req['user'].id
-  let group: Group = req['group']
+  let userId = req.user.id
+  let group = req.group
 
   if (group != 'vendors') {
     res.status(401).send()
@@ -283,7 +283,7 @@ revisionsRouter.put('/:revisionId', async (req, res, next) => {
     }).then(_ => res.status(201).send()).catch(next)
 })
 
-revisionsRouter.delete('/:revision', (req, res, next) => {
+revisionsRouter.delete('/:revisionNumber', (req, res, next) => {
   let formId = req.params.formId
   let revision = +req.params.revision
 
@@ -291,7 +291,8 @@ revisionsRouter.delete('/:revision', (req, res, next) => {
     "_id": formId
   }, {
       "$pull": {
-        "revisions.revision": revision
+        "revisions.number": revision,
+        "revisions.published": false
       }
     }).then(_ => res.status(201).send()).catch(next)
 })
