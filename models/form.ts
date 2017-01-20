@@ -19,7 +19,7 @@ export const FormSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    default: '新表單'
+    default: '新的表單'
   },
   // 各個版本
   revisions: {

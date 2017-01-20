@@ -186,14 +186,16 @@ formsRouter.use((req, res, next) => {
 })
 
 formsRouter.post('/', (req, res, next) => {
-  Form.create().then(_ => res.status(201).send()).catch(next)
+  new Form({}).save().then($0 => {
+    res.status(201).send($0.id)
+  }).catch(err => next(err))
 })
 
 formsRouter.put('/:id', (req, res, next) => {
   if (req.body.revisions) {
     res.status(500).send('不能透過 PUT /forms/<id> 更新版本')
   } else {
-    Form.findById(req.params.id, { $set: req.body }).then(_ => res.status(204).send()).catch(next)
+    Form.findByIdAndUpdate(req.params.id, { $set: req.body }).then(_ => res.status(204).send()).catch(next)
   }
 })
 
@@ -202,11 +204,12 @@ formsRouter.delete('/:id', (req, res, next) => {
 })
 
 /** Revision 相關 **/
-let revisionsRouter = express.Router()
+let revisionsRouter = express.Router({ mergeParams: true })
 formsRouter.use('/:formId/revisions', revisionsRouter);
 
-revisionsRouter.post('/', (req, res, next) => {
+revisionsRouter.post('/', async (req, res, next) => {
   let formId = req.params.formId
+
   Form.findById(formId).then(form => {
     if (!form) {
       res.status(404).send()
@@ -222,16 +225,16 @@ revisionsRouter.post('/', (req, res, next) => {
     Form.findByIdAndUpdate(formId, {
       '$push': {
         revisions: {
-          revision: nextRevision,
+          number: nextRevision
         }
       }
     }).then(_ => res.status(204).send()).catch(next)
   })
 })
 
-revisionsRouter.put('/:revisionId', async (req, res, next) => {
+revisionsRouter.put('/:revisionNumber', async (req, res, next) => {
   let formId = req.params.formId
-  let revisionId = req.params.revisionId
+  let revisionNumber = +req.params.revisionNumber
 
   let targetForm: FormInterface = null
   try {
@@ -245,7 +248,7 @@ revisionsRouter.put('/:revisionId', async (req, res, next) => {
     return
   }
 
-  let targetRevision = targetForm.revisions.find(rev => rev.id == revisionId)
+  let targetRevision = targetForm.revisions.find(rev => rev.number == revisionNumber)
   if (!targetRevision) {
     res.status(404).send()
     return
@@ -257,7 +260,7 @@ revisionsRouter.put('/:revisionId', async (req, res, next) => {
     if (revisionsWithSameNumber.length >= 2) {
       res.status(500).send()
       return
-    } else if (revisionsWithSameNumber.length == 1 && !(revisionsWithSameNumber[0].id == revisionId)) {
+    } else if (revisionsWithSameNumber.length == 1 && !(revisionsWithSameNumber[0].id == targetRevision.id)) {
       res.status(500).send()
       return
     }
@@ -268,31 +271,52 @@ revisionsRouter.put('/:revisionId', async (req, res, next) => {
     return
   }
 
-  Form.findOneAndUpdate({
-    "_id": formId,
-    "revisions": {
-      "$elemMatch": {
-        "_id": revisionId,
-        "published": false
+  try {
+    await Form.findOneAndUpdate({
+      "_id": formId,
+      "revisions": {
+        "$elemMatch": {
+          "_id": targetRevision.id,
+          "published": false
+        }
       }
-    }
-  }, {
-      "$set": {
-        "revisions.$": req.body
+    }, {
+        "$set": {
+          "revisions.$": req.body
+        }
+      }).exec()
+
+    // 依照版本號排序
+    await Form.findByIdAndUpdate(formId, {
+      "$push": {
+        "revisions": {
+          "$each": [],
+          "$sort": {
+            number: 1
+          }
+        }
       }
-    }).then(_ => res.status(201).send()).catch(next)
+    }).exec()
+  } catch (err) {
+    next(err)
+    return
+  }
+
+  res.status(201).send()
 })
 
 revisionsRouter.delete('/:revisionNumber', (req, res, next) => {
   let formId = req.params.formId
-  let revision = +req.params.revision
+  let revisionNumber = +req.params.revisionNumber
 
   Form.findOneAndUpdate({
     "_id": formId
   }, {
       "$pull": {
-        "revisions.number": revision,
-        "revisions.published": false
+        revisions: {
+          "number": revisionNumber,
+          "published": false
+        }
       }
     }).then(_ => res.status(201).send()).catch(next)
 })
