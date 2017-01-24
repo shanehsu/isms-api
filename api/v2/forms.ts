@@ -101,7 +101,8 @@ formsRouter.get('/:formId', async (req, res, next) => {
     }
 
     // 管理員
-    if (req.query.scope == 'admin') {
+    if (req.group == 'admins' && req.query && req.query.scope == 'admin') {
+      console.log('admin scope')
       res.json(form)
       return
     }
@@ -110,6 +111,7 @@ formsRouter.get('/:formId', async (req, res, next) => {
 
     // 回傳單一版本的狀況
     if (req.query.revisionNumber) {
+      console.log('default scope - some revision')
       // 查詢特定版本 - 使用 `revisionNumber`
       let number = Number.parseFloat(req.query.revisionNumber)
       if (Number.isNaN(number)) {
@@ -127,6 +129,7 @@ formsRouter.get('/:formId', async (req, res, next) => {
       }
     } else {
       // 預設值 - 使用最新版本
+      console.log('default scope - latest')
       revision = form.revisions.filter(rev => rev.published).slice(-1)[0]
       if (!revision) {
         res.status(404).send(`找不到可用的表單版本`)
@@ -138,9 +141,10 @@ formsRouter.get('/:formId', async (req, res, next) => {
       res.status(401).send(`您沒有查看該表單的權利`)
       return
     }
-    let response = form as any
+    let response = Object.assign({}, form['_doc'])
     delete response.revisions
-    response.revision = revision
+    response = Object.assign(response, { revision: revision })
+
     res.json(response)
   } catch (err) {
     next(err)

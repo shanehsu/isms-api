@@ -14,11 +14,12 @@ export interface RecordInterface extends mongoose.Document {
   serial?: number
   generatedSerial?: string
   owner?: string
+  status?: "awaiting_review" | "accepted" | "declined"
   signatures?: {
     personnel: string,
     timestamp: Date,
     signed: boolean
-  }[],
+  }[]
   contents?: any
 }
 
@@ -26,42 +27,46 @@ export const RecordSchema = new mongoose.Schema({
   // 對應到表單的格式
   formID: {
     type: ObjectId,
-    required: false
+    required: true
   },
   formRevision: {
     type: ObjectId,
-    required: false
+    required: true
   },
 
   // 對應到一個單位
   owningUnit: {
     type: ObjectId,
-    required: false
+    required: true
   },
 
   // 對應到填寫日
   created: {
     type: Date,
-    required: true,
     default: new Date()
   },
 
   // 對應到流水號
   serial: {
     type: Number,
-    required: false
+    required: true
   },
 
   // 表單編號
   generatedSerial: {
     type: String,
-    required: false
+    required: true
   },
 
   // 對應到填寫者
   owner: {
     type: ObjectId,
-    required: false
+    required: true
+  },
+
+  status: {
+    type: mongoose.Schema.Types.String,
+    required: true
   },
 
   // 需要簽核的話，對應到簽核者
@@ -73,7 +78,7 @@ export const RecordSchema = new mongoose.Schema({
         signed: Boolean
       }
     ],
-    required: false
+    required: true
   },
 
   // 表單資料

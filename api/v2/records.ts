@@ -7,9 +7,6 @@ import { Form, FormInterface } from './../../libs/models'
 
 export let recordsRouter = express.Router()
 
-// TODO: Signature List Not Required on some Form
-// TODO: Signature List has to remove stuff
-
 function getAllChildren(unitId: string): Promise<string[]> {
   return new Promise((resolve, reject) => {
     Unit.find().then(units => {
@@ -137,7 +134,7 @@ recordsRouter.get('/:id', (req, res, next) => {
   }).catch(next)
 })
 recordsRouter.post('/', async (req, res, next) => {
-  let userId: string = req['user'].id
+  let userId: string = req.user.id
   let formId: string = req.body.formId
   let contents = <{ [fieldId: string]: any }>req.body.contents
 
@@ -260,6 +257,7 @@ recordsRouter.post('/', async (req, res, next) => {
   })
 
   signatures[0].signed = true
+  let noSignaturesRequired = signatures.reduce((prev, signature) => { return signature.signed && prev }, true)
 
   // 建立文件
   let record = new Record({
@@ -271,7 +269,8 @@ recordsRouter.post('/', async (req, res, next) => {
     generatedSerial: `${currentYear - 1911}-${unit.identifier}-${nextSerial}`,
     owner: userId,
     signatures: signatures,
-    contents: contents
+    contents: contents,
+    status: noSignaturesRequired ? 'accepted' : 'awaiting_review'
   })
 
   try {
@@ -303,11 +302,16 @@ recordsRouter.post('/:id/actions/sign', (req, res, next) => {
     itsSignature.signed = true
     itsSignature.timestamp = new Date()
 
+    if (record.signatures.indexOf(itsSignature) == record.signatures.length - 1) {
+      record.status = 'accepted'
+      record.markModified('status')
+    }
+
     record.markModified('signatures')
     record.save().then(_ => res.status(201).send()).catch(next)
   }).catch(next)
 })
-recordsRouter.post('/:id/actions/return', (req, res, next) => {
+recordsRouter.post('/:id/actions/decline', (req, res, next) => {
   let userId = (<UserInterface>req['user']).id
   // 先取得該資料
   let recordId = req.params.id
@@ -328,25 +332,61 @@ recordsRouter.post('/:id/actions/return', (req, res, next) => {
       signature.signed = false
     }
 
+    record.status = 'declined'
+
     record.markModified('signatures')
+    record.markModified('status')
+
     record.save().then(_ => res.status(201).send()).catch(next)
   }).catch(next)
 })
+recordsRouter.put('/:id', async (req, res, next) => {
+  let group: Group = req.group
+  // 若該 Id 的狀態為 'declined' 則可以編輯
+
+  // 管理員編輯
+  if (req.query.scope == 'admin') {
+    next()
+    return
+  }
+
+  // 非管理人員，必須是本人才可以編輯
+  let recordId = req.params.id
+  try {
+    await Record.findOneAndUpdate({
+      "_id": recordId,
+      "owner": req.user.id,
+      "status": "declined"
+    }, {
+        "$set": {
+          "contents": req.body
+        }
+      })
+  } catch (err) {
+    res.status(500).send()
+    return
+  }
+
+  res.status(204).send()
+})
 recordsRouter.put('/:id', (req, res, next) => {
-  let group: Group = req['group']
+  let group: Group = req.group
   let recordId = req.params.id
 
   if (group != 'admins') {
     res.status(401).send()
   }
-
-  Record.findByIdAndUpdate(recordId, {
-    "$set": req.body
-  }).then(_ => res.status(204).send()).catch(next)
+  try {
+    Record.findByIdAndUpdate(recordId, {
+      "$set": req.body
+    }).then(_ => res.status(204).send()).catch(next)
+  } catch (err) {
+    res.status(500).send()
+    return
+  }
+  res.status(204).send()
 })
 
-
-// TODO: 更改 Forms 如果廠商要求表單，再給他單位內的人事
 
 /** Note
  *  Collection Method
