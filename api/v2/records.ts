@@ -209,7 +209,7 @@ recordsRouter.post('/', async (req, res, next) => {
   }
 
   let nextSerial = 1
-  if (!lastRecord) {
+  if (lastRecord) {
     nextSerial = lastRecord.serial + 1
   }
 
