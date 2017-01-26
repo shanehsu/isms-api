@@ -166,8 +166,8 @@ recordsRouter.post('/', async (req, res, next) => {
   try {
     let units = await Unit.find({
       "$or": [
-        { "$members.agents": userId },
-        { "$members.vendors": userId }
+        { "members.agents": userId },
+        { "members.vendors": userId }
       ]
     })
 
