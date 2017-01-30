@@ -7,7 +7,7 @@ const ObjectId = mongoose.Schema.Types.ObjectId
 
 export interface RecordInterface extends mongoose.Document {
   id?: string
-  formID?: string
+  formId?: string
   formRevision?: string
   owningUnit?: string
   created?: Date
@@ -18,14 +18,15 @@ export interface RecordInterface extends mongoose.Document {
   signatures?: {
     personnel: string,
     timestamp: Date,
-    signed: boolean
+    signed: boolean,
+    as: string
   }[]
   contents?: any
 }
 
 export const RecordSchema = new mongoose.Schema({
   // 對應到表單的格式
-  formID: {
+  formId: {
     type: ObjectId,
     required: true
   },
@@ -75,7 +76,8 @@ export const RecordSchema = new mongoose.Schema({
       {
         personnel: ObjectId,
         timestamp: Date,
-        signed: Boolean
+        signed: Boolean,
+        as: String
       }
     ],
     required: true

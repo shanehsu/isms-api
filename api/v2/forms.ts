@@ -21,6 +21,8 @@ formsRouter.get('/', async (req, res, next) => {
    * and requests that scope through ?scope=admin
    */
 
+  let userId = req.user.id
+
   if (req.group == 'admins' && req.query.scope && req.query.scope == 'admin') {
     try {
       let forms = await Form.find({}, {
@@ -35,6 +37,20 @@ formsRouter.get('/', async (req, res, next) => {
     // the *fill* scope
     let group: Group = req.group
     try {
+      let belongingUnit = await Unit.find({
+        "$or": [
+          { "members.vendors": userId },
+          { "members.agents": userId }
+        ]
+      })
+
+      console.dir(belongingUnit)
+
+      if (belongingUnit.length == 0) {
+        res.status(500).send()
+        return
+      }
+
       let forms = await Form.aggregate([
         {
           // 取得已經發布的版本
@@ -79,6 +95,36 @@ formsRouter.get('/', async (req, res, next) => {
       next(err)
     }
   }
+})
+
+formsRouter.get('/associatedAgents', (req, res, next) => {
+  console.log('Here we are!')
+
+  let userId = req.user.id
+  let group = req.group
+
+  if (group != 'vendors') {
+    res.status(401).send()
+    return
+  }
+
+  Unit.findOne({
+    "members.vendors": userId
+  }).then(unit => {
+    if (!unit) {
+      res.status(500).send(`不屬於任何單位`)
+      return
+    }
+
+    User.find({ _id: unit.members.agents }).then(agents => {
+      res.json(agents.map(agent => {
+        return {
+          id: agent.id,
+          name: agent.name
+        }
+      }))
+    }).catch(next)
+  }).catch(next)
 })
 
 formsRouter.get('/:formId', async (req, res, next) => {
@@ -150,34 +196,6 @@ formsRouter.get('/:formId', async (req, res, next) => {
     next(err)
     return
   }
-})
-
-formsRouter.get('/associatedAgents', (req, res, next) => {
-  let userId = req.user.id
-  let group = req.group
-
-  if (group != 'vendors') {
-    res.status(401).send()
-    return
-  }
-
-  Unit.findOne({
-    "members.vendors": userId
-  }).then(unit => {
-    if (!unit) {
-      res.status(500).send(`不屬於任何單位`)
-      return
-    }
-
-    User.find({ _id: unit.members.agents }).then(agents => {
-      res.json(agents.map(agent => {
-        return {
-          id: agent.id,
-          name: agent.name
-        }
-      }))
-    }).catch(next)
-  }).catch(next)
 })
 
 formsRouter.use((req, res, next) => {

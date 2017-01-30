@@ -3,6 +3,7 @@ import mongoose = require('mongoose')
 import { User, UserInterface, Unit, UnitInterface, Group } from './../../libs/models'
 import { generatePassword } from './../../util/auth'
 
+let ObjectId = mongoose.Types.ObjectId
 export let meRouter = express.Router()
 
 meRouter.use((req, res, next) => {
@@ -21,24 +22,26 @@ meRouter.get('/', (req, res, next) => {
     "$or": [
       { "members.none": user.id },
       { "members.docsControl": user.id },
-      { "members.agent": user.id },
+      { "members.agents": { "$in": [user.id] } },
       { "members.manager": user.id },
-      { "members.vendors": user.id }
+      { "members.vendors": { "$in": [user.id] } }
     ]
   }).then(units => {
     if (units.length > 0) {
-      let unit: UnitInterface = units[0] as any
+      let unit: UnitInterface = JSON.parse(JSON.stringify(units[0])) as any
       (unit as any).role = {
-        agent: unit.members.agents.includes(user.id),
+        agent: unit.members.agents.map(v => v.toString()).includes(user.id),
         manager: unit.members.manager == user.id,
-        docsControl: unit.members.docsControl == user.id
+        docsControl: unit.members.docsControl == user.id,
+        vendor: unit.members.vendors.map(v => v.toString()).includes(user.id)
       };
 
       delete unit._id;
       delete unit.members;
       delete unit.parentUnit;
 
-      (user as any).unit = unit
+      user = JSON.parse(JSON.stringify(user)) as any
+      user['unit'] = unit
     }
 
     delete user.password

@@ -4,6 +4,7 @@ import { Group } from './../../libs/models'
 import { Record, RecordInterface } from './../../libs/models'
 import { Unit, UnitInterface } from './../../libs/models'
 import { Form, FormInterface } from './../../libs/models'
+var ObjectId = require('mongoose').Types.ObjectId
 
 export let recordsRouter = express.Router()
 
@@ -23,14 +24,14 @@ function getAllChildren(unitId: string): Promise<string[]> {
 function getResponsibilityChain(userId: string): Promise<string[]> {
   return new Promise<string[]>((resolve, reject) => {
     Unit.find({}).then(units => {
-      let chain = [userId]
+      let chain = []
 
       // 找出那個人在哪裡（這個人一定是承辦人）
-      let userUnit = units.find(u => u.members.agents.includes(userId))
+      let userUnit = units.find(u => u.members.agents.map(a => a.toString()).includes(userId))
       let current = userUnit
       while (current != undefined) {
         if (current.members.manager) {
-          chain.push(current.members.manager)
+          chain.push(current.members.manager.toString())
         } else {
           reject(new Error(`「${current.name}」沒有設定主管`))
           return
@@ -53,85 +54,302 @@ recordsRouter.use((req, res, next) => {
     next()
   }
 })
-recordsRouter.get('/', (req, res, next) => {
-  let userID = (req['user'] as UserInterface).id
-
-  if (req['group'] as Group == 'admins' && req.query.scope && req.query.scope == 'admin') {
-    Record.find({}, { contents: 0 }).then(forms => res.json(forms)).catch(next)
-  } else {
-    let predicates: { [_: string]: any }[] = [
-      { "signatures.personnel": userID }
-    ]
-    // 找出該使用者的角色
-    Unit.find({
-      "$or": [
-        { "members.docsControl": userID },
-        { "members.manager": userID }
-      ]
-    }).then(userUnit => {
-      if (userUnit.length > 0) {
-        // 主管或是文管
-        let unit = userUnit[0]
-        getAllChildren(unit.id).then(childrenIDs => {
-          predicates.push({
-            "owningUnit": childrenIDs
-          })
-
-          Record.find({ "$or": predicates }, { contents: false }).then(records => res.json(records)).catch(next)
-        }).catch(next)
-      } else {
-        // 無單位歸屬或者是有單位但是不是主管或是文管
-        Record.find({
-          "signatures.personnel": userID
-        }, {
-            contents: 0
-          }).then(records => res.json(records)).catch(next)
+recordsRouter.get('/', async (req, res, next) => {
+  let aggregationPipeline = [
+    {
+      $project: {
+        contents: 0
       }
+    },
+    {
+      $unwind: {
+        path: "$signatures",
+        preserveNullAndEmptyArrays: false // Will Never Happen Anyways
+      }
+    }, {
+      $lookup: {
+        "from": "users",
+        "localField": "signatures.personnel",
+        "foreignField": "_id",
+        "as": "signatures.source"
+      }
+    }, {
+      $addFields: {
+        "signatures.name": {
+          "$cond": {
+            "if": { "$ne": ["$signatures.as", ""] },
+            "then": "$signatures.as",
+            "else": { "$arrayElemAt": ["$signatures.source.name", 0] }
+          }
+        }
+      }
+    }, {
+      $project: {
+        "signatures.source": 0,
+        "signatures.as": 0
+      }
+    }, {
+      $group: {
+        "_id": "$_id",
+        "formId": { "$first": "$formId" },
+        "formRevision": { "$first": "$formRevision" },
+        "owningUnit": { "$first": "$owningUnit" },
+        "generatedSerial": { "$first": "$generatedSerial" },
+        "owner": { "$first": "$owner" },
+        "status": { "$first": "$status" },
+        "signatures": { "$push": "$signatures" },
+        "created": { "$first": "$created" }
+      }
+    }, {
+      $lookup: {
+        "from": "users",
+        "localField": "owner",
+        "foreignField": "_id",
+        "as": "_owner"
+      }
+    }, {
+      $lookup: {
+        "from": "forms",
+        "localField": "formId",
+        "foreignField": "_id",
+        "as": "_form"
+      }
+    }, {
+      $lookup: {
+        "from": "units",
+        "localField": "owningUnit",
+        "foreignField": "_id",
+        "as": "_unit"
+      }
+    }, {
+      $unwind: {
+        "path": "$_form",
+        "preserveNullAndEmptyArrays": false
+      }
+    }, {
+      $unwind: {
+        "path": "$_form.revisions",
+        "preserveNullAndEmptyArrays": false
+      }
+    }, {
+      $addFields: {
+        "rightOne": { "$eq": ["$_form.revisions._id", "$formRevision"] }
+      }
+    }, {
+      $match: {
+        "rightOne": true
+      }
+    }, {
+      $addFields: {
+        "formName": "$_form.name",
+        "revisionNumber": "$_form.revisions.number",
+        "ownerName": { "$arrayElemAt": ["$_owner.name", 0] },
+        "unitName": { "$arrayElemAt": ["$_unit.name", 0] },
+      }
+    }, {
+      $project: {
+        "_owner": 0,
+        "_form": 0,
+        "_unit": 0,
+        "rightOne": 0
+      }
+    }
+  ]
+
+  let userId = req.user.id
+
+  if (req.group == 'admins' && req.query.scope && req.query.scope == 'admin') {
+    try {
+      let records = await Record.aggregate(aggregationPipeline)
+      res.json(records)
+    } catch (err) {
+      next(err)
+    }
+
+    return
+  }
+
+  let predicates: { [_: string]: any }[] = [
+    { "signatures.personnel": new ObjectId(userId) }
+  ]
+
+  // 找出該使用者的角色
+  try {
+    let belongingUnit = await Unit.find({
+      "$or": [
+        { "members.docsControl": userId },
+        { "members.manager": userId }
+      ]
     })
+
+    if (belongingUnit.length > 0) {
+      // 主管或是文管
+      let unit = belongingUnit[0]
+      let children = await getAllChildren(unit.id)
+      predicates.push({
+        "owningUnit": {
+          "$in": children.map(c => new ObjectId(c))
+        }
+      })
+    }
+    let records = await Record.aggregate([{ "$match": { "$or": predicates } }, ...aggregationPipeline])
+
+    res.json(records)
+  } catch (err) {
+    next(err)
   }
 })
-recordsRouter.get('/:id', (req, res, next) => {
-  let userID = (<UserInterface>req['user']).id
+recordsRouter.get('/:id', async (req, res, next) => {
+  let aggregationPipeline = [
+    {
+      $unwind: {
+        path: "$signatures",
+        preserveNullAndEmptyArrays: false // Will Never Happen Anyways
+      }
+    }, {
+      $lookup: {
+        "from": "users",
+        "localField": "signatures.personnel",
+        "foreignField": "_id",
+        "as": "signatures.source"
+      }
+    }, {
+      $addFields: {
+        "signatures.name": {
+          "$cond": {
+            "if": { "$ne": ["$signatures.as", ""] },
+            "then": "$signatures.as",
+            "else": { "$arrayElemAt": ["$signatures.source.name", 0] }
+          }
+        }
+      }
+    }, {
+      $project: {
+        "signatures.source": 0,
+        "signatures.as": 0
+      }
+    }, {
+      $group: {
+        "_id": "$_id",
+        "formId": { "$first": "$formId" },
+        "formRevision": { "$first": "$formRevision" },
+        "owningUnit": { "$first": "$owningUnit" },
+        "generatedSerial": { "$first": "$generatedSerial" },
+        "owner": { "$first": "$owner" },
+        "status": { "$first": "$status" },
+        "signatures": { "$push": "$signatures" },
+        "contents": { "$first": "$contents" },
+        "created": { "$first": "$created" }
+      }
+    }, {
+      $lookup: {
+        "from": "users",
+        "localField": "owner",
+        "foreignField": "_id",
+        "as": "_owner"
+      }
+    }, {
+      $lookup: {
+        "from": "forms",
+        "localField": "formId",
+        "foreignField": "_id",
+        "as": "_form"
+      }
+    }, {
+      $lookup: {
+        "from": "units",
+        "localField": "owningUnit",
+        "foreignField": "_id",
+        "as": "_unit"
+      }
+    }, {
+      $unwind: {
+        "path": "$_form",
+        "preserveNullAndEmptyArrays": false
+      }
+    }, {
+      $unwind: {
+        "path": "$_form.revisions",
+        "preserveNullAndEmptyArrays": false
+      }
+    }, {
+      $addFields: {
+        "rightOne": { "$eq": ["$_form.revisions._id", "$formRevision"] }
+      }
+    }, {
+      $match: {
+        "rightOne": true
+      }
+    }, {
+      $addFields: {
+        "formName": "$_form.name",
+        "revisionNumber": "$_form.revisions.number",
+        "ownerName": { "$arrayElemAt": ["$_owner.name", 0] },
+        "unitName": { "$arrayElemAt": ["$_unit.name", 0] },
+      }
+    }, {
+      $project: {
+        "_owner": 0,
+        "_form": 0,
+        "_unit": 0,
+        "rightOne": 0
+      }
+    }
+  ]
 
-  // 先取得該資料
+  let userId = req.user.id
+
   let recordId = req.params.id
-
-  Record.findById(recordId).then(record => {
+  try {
+    let records = await Record.aggregate([
+      {
+        "$match": {
+          "_id": new ObjectId(recordId)
+        }
+      }, ...aggregationPipeline
+    ])
+    let record = records[0] as RecordInterface
     if (!record) {
       res.status(404).send()
       return
     }
-    if (req['group'] as Group == 'admins' && req.query.scope && req.query.scope == 'admin') {
+
+    if (req.group == 'admins' && req.query.scope && req.query.scope == 'admin') {
       // 管理員
       res.json(record)
     } else {
-      Unit.find({
+      let units = await Unit.find({
         "$or": [
-          { "members.docsControl": userID },
-          { "members.manager": userID }
+          { "members.docsControl": new ObjectId(userId) },
+          { "members.manager": new ObjectId(userId) }
         ]
-      }).then(userUnit => {
-        if (userUnit.length > 0) {
-          // 是文管或是主管
-          getAllChildren(userUnit[0].id).then(childrenIDs => {
-            if (childrenIDs.includes(record.owningUnit)) {
-              res.json(record)
-            } else {
-              res.status(401).send()
-            }
-          }).catch(next)
+      })
+      if (units.length > 0) {
+        let unit = units[0]
+
+        // 是文管或是主管
+        let childrenIds = await getAllChildren(unit.id)
+        childrenIds.push(unit.id)
+        childrenIds = childrenIds.map(id => id.toString())
+
+        if (childrenIds.includes(record.owningUnit.toString())) {
+          res.json(record)
         } else {
-          // 正常權限
-          if (record.signatures.findIndex(sig => sig.personnel == userID) >= 0) {
-            // 使用者在簽核鏈中
-            res.json(record)
-          } else {
-            res.status(401).send()
-          }
+          res.status(401).send()
         }
-      }).catch(next)
+      } else {
+        // 正常權限
+        if (record.signatures.findIndex(sig => sig.personnel.toString() == userId) >= 0) {
+          // 使用者在簽核鏈中
+          res.json(record)
+        } else {
+          res.status(401).send()
+        }
+      }
     }
-  }).catch(next)
+  } catch (err) {
+    next(err)
+  }
 })
 recordsRouter.post('/', async (req, res, next) => {
   let userId: string = req.user.id
@@ -196,13 +414,14 @@ recordsRouter.post('/', async (req, res, next) => {
   let lastRecord: RecordInterface
 
   try {
-    lastRecord = await Record.find({
+    let lasts = await Record.find({
       "created": {
         "$gte": new Date(currentYear, 0, 1, 0, 0, 0),
         "$lte": new Date(currentYear, 11, 31, 23, 59, 59)
       },
       "owningUnit": unit.id
-    }).sort({ serial: -1 }).limit(1)[0]
+    }).sort({ serial: -1 }).limit(1)
+    lastRecord = lasts[0]
   } catch (err) {
     next(err)
     return
@@ -220,10 +439,11 @@ recordsRouter.post('/', async (req, res, next) => {
   if (req.group == 'vendors') {
     // 廠商
     let associatedAgent: string | undefined = req.body.associatedAgent
+
     if (!associatedAgent) {
       res.status(500).send(`廠商必須指定相關承辦人。`)
       return
-    } else if (!unit.members.agents.includes(associatedAgent)) {
+    } else if (!unit.members.agents.map(a => a.toString()).includes(associatedAgent)) {
       res.status(500).send(`廠商所指定得相關承辦人必須位於同一個單位。`)
       return
     }
@@ -252,16 +472,19 @@ recordsRouter.post('/', async (req, res, next) => {
     return {
       personnel: p,
       timestamp: new Date(),
-      signed: false
+      signed: false,
+      as: ''
     }
   })
 
   signatures[0].signed = true
+  signatures[0].as = req.body.signature
+
   let noSignaturesRequired = signatures.reduce((prev, signature) => { return signature.signed && prev }, true)
 
   // 建立文件
   let record = new Record({
-    formID: formId,
+    formId: formId,
     formRevision: latestRevision.id,
     owningUnit: unit.id,
     created: new Date(),
@@ -301,6 +524,7 @@ recordsRouter.post('/:id/actions/sign', (req, res, next) => {
 
     itsSignature.signed = true
     itsSignature.timestamp = new Date()
+    itsSignature.as = req.body.as
 
     if (record.signatures.indexOf(itsSignature) == record.signatures.length - 1) {
       record.status = 'accepted'
