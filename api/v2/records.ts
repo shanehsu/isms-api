@@ -497,13 +497,12 @@ recordsRouter.post('/', async (req, res, next) => {
   })
 
   try {
-    await record.save()
+    let savedRecord = await record.save()
+    res.status(201).send(savedRecord.id)
   } catch (err) {
     next(err)
     return
   }
-
-  res.status(201).send()
 })
 recordsRouter.post('/:id/actions/sign', (req, res, next) => {
   let userId = (<UserInterface>req['user']).id
