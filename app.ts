@@ -1,22 +1,23 @@
 'use strict'
 
 import express = require('express')
-import {corsHeader, noCache, randomResponseTimeDelay} from './util/middlewares'
-import {APIRouter} from './api/api'
-import {ssoRouter} from './sso'
+import { corsHeader, noCache, randomResponseTimeDelay } from './util/middlewares'
+import { APIRouter } from './api/api'
+import { ssoRouter } from './sso'
 
+var isms_app: express.Express = require('./../isms-app/express-server').app
 var mongoose = require('./util/mongoose')
 var colors = require('colors/safe')
 var logger = require('morgan')('dev')
 var cookieParser = require('cookie-parser')
 var bodyParser = require('body-parser')
-var urlEncodedParser = bodyParser.urlencoded({extended: true})
+var urlEncodedParser = bodyParser.urlencoded({ extended: true })
 var jsonParser = bodyParser.json()
 
 // 型態別稱
 type Request = express.Request
 type Response = express.Response
-type Next = express.NextFunction;
+type Next = express.NextFunction
 
 let app = express()
 
@@ -30,11 +31,11 @@ app.use(noCache)
 app.use(randomResponseTimeDelay)
 
 app.use((req, res, next) => {
-  // console.log('收到的 cookies')
-  // console.dir(req.cookies)
-
   next()
 })
+
+// 網頁應用程式
+app.use('/app', isms_app)
 
 // 路由
 app.use('/api', APIRouter)
@@ -42,9 +43,9 @@ app.use('/sso', ssoRouter)
 
 // 404 處理常式
 app.use((req: Request, res: Response, next: Next) => {
-    res.status(404).json({
-      message: "無法找到你所需要的資源。"
-    })
+  res.status(404).json({
+    message: "無法找到你所需要的資源。"
+  })
 })
 
 // 錯誤處理常式
