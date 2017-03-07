@@ -1,7 +1,7 @@
 import express = require('express')
 
 import { returnUser } from './../../util/auth'
-import { Group } from './../../libs/models'
+import { User, Group } from './../../libs/models'
 import { loginRouter } from './login'
 import { newsRouter } from './news'
 import { usersRouter } from './users'
@@ -12,21 +12,33 @@ import { recordsRouter } from './records'
 import { unitsRouter } from './units'
 export let V2Router = express.Router()
 
-V2Router.use((req, res, next) => {
-  let token: string | undefined = req.get('token')
-  if (token != undefined) {
-    returnUser(token).then(user => {
-      req['user'] = user
-      req['authenticated'] = true
-      req['group'] = user.group
+V2Router.use(async (req, res, next) => {
+  let token: string | undefined = req.header('token')
 
-      next()
-    }).catch(err => next(err))
+  if (token != undefined) {
+    try {
+      let user = await User.find({ 'tokens.token': token }).limit(1)[0]
+      if (user) {
+        req['user'] = null
+        req['authenticated'] = false
+        req['group'] = 'guests' as Group
+        next()
+      } else {
+        req['user'] = null
+        req['authenticated'] = false
+        req['group'] = 'guests' as Group
+        next()
+      }
+    } catch (err) {
+      res.status(500).json({
+        message: `取得使用者時，資料庫錯誤`,
+        raw: err
+      })
+    }
   } else {
     req['user'] = null
     req['authenticated'] = false
     req['group'] = 'guests' as Group
-
     next()
   }
 })

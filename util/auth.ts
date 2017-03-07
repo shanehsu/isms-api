@@ -9,9 +9,9 @@ import { User, UserInterface, PasswordInterface } from './../libs/models'
 
 export function returnUser(token: string): Promise<UserInterface> {
   return new Promise<UserInterface>((resolve, reject) => {
-    User.find({'tokens.token' : token}).limit(1).exec().then(doc => {
+    User.find({ 'tokens.token': token }).limit(1).exec().then(doc => {
       if (doc.length == 0) {
-        reject(new Error('代幣為 ' + token + '的使用者並不存在。'))
+        reject(new Error(`代幣為 ${token} 的使用者並不存在。`))
       } else {
         return resolve(doc[0])
       }
@@ -26,7 +26,7 @@ export function generatePassword(password: string): Promise<PasswordInterface> {
       if (err) { reject(err); return; }
       let salt = saltBuffer.toString('hex')
       let iterations = Math.ceil(Math.random() * 1000) + 1
-      
+
       crypto.pbkdf2(password, salt, iterations, 512, 'sha512', (err: Error, key: Buffer | null) => {
         if (err) { reject(err); return; }
         resolve({ hash: key.toString('hex'), salt: salt, iteration: iterations })
