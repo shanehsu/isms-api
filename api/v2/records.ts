@@ -48,7 +48,7 @@ function getResponsibilityChain(userId: string): Promise<string[]> {
 }
 recordsRouter.use((req, res, next) => {
   if (req.method.toLowerCase() == 'options') { next(); return; }
-  if (req['group'] as Group == 'guests') {
+  if (req.group == 'guests') {
     res.status(401).send()
   } else {
     next()
@@ -374,7 +374,7 @@ recordsRouter.post('/', async (req, res, next) => {
   // 3. 有單位歸屬
 
   // 判斷 (1)
-  if (!latestRevision.groups.includes(req['group'])) {
+  if (!latestRevision.groups.includes(req.group)) {
     res.status(401).send()
     return
   }
@@ -497,7 +497,9 @@ recordsRouter.post('/', async (req, res, next) => {
   })
 
   try {
+    console.dir(record)
     let savedRecord = await record.save()
+    console.dir(savedRecord)
     res.status(201).send(savedRecord.id)
   } catch (err) {
     next(err)
@@ -505,7 +507,7 @@ recordsRouter.post('/', async (req, res, next) => {
   }
 })
 recordsRouter.post('/:id/actions/sign', (req, res, next) => {
-  let userId = (<UserInterface>req['user']).id
+  let userId = req.user.id
   // 先取得該資料
   let recordId = req.params.id
 
@@ -535,7 +537,7 @@ recordsRouter.post('/:id/actions/sign', (req, res, next) => {
   }).catch(next)
 })
 recordsRouter.post('/:id/actions/decline', (req, res, next) => {
-  let userId = (<UserInterface>req['user']).id
+  let userId = req.user.id
   // 先取得該資料
   let recordId = req.params.id
 

@@ -24,7 +24,7 @@ newsRouter.get('/:id', (req, res, next) => {
 })
 
 newsRouter.post('/', (req, res, next) => {
-  let group = req['group'] as Group
+  let group = req.group
   if (group == "admins") {
     Piece.create({}).then(piece => res.status(201).send(piece.id)).catch(next)
   } else {
@@ -33,7 +33,7 @@ newsRouter.post('/', (req, res, next) => {
 })
 
 newsRouter.put('/:id', (req, res, next) => {
-  let group = req['group'] as Group
+  let group = req.group
   if (group == "admins") {
     const id = req.params.id
     Piece.findByIdAndUpdate(id, { $set: req.body }).then(_ => res.status(204).send()).catch(next)
@@ -43,7 +43,7 @@ newsRouter.put('/:id', (req, res, next) => {
 })
 
 newsRouter.delete('/:id', (req, res, next) => {
-  let group = req['group'] as Group
+  let group = req.group
   if (group == 'admins') {
     Piece.findByIdAndRemove(req.params.id).then(_ => res.send()).catch(next)
   } else {

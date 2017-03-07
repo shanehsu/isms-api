@@ -8,7 +8,7 @@ export let meRouter = express.Router()
 
 meRouter.use((req, res, next) => {
   if (req.method.toLowerCase() == 'options') { next(); return; }
-  if (req['group'] as Group == 'guests') {
+  if (req.group == 'guests') {
     res.status(404).send()
   } else {
     next()
@@ -51,7 +51,7 @@ meRouter.get('/', (req, res, next) => {
 })
 
 meRouter.delete('/tokens/:tokenID', (req, res, next) => {
-  User.findByIdAndUpdate(req['user'].id, { $pull: { tokens: { _id: req.params.tokenID } } }).then(_ => res.status(204).send()).catch(next)
+  User.findByIdAndUpdate(req.user.id, { $pull: { tokens: { _id: req.params.tokenID } } }).then(_ => res.status(204).send()).catch(next)
 })
 
 meRouter.put('/password', (req, res, next) => {

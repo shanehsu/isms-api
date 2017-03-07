@@ -2,13 +2,13 @@ import express = require('express')
 import crypto = require('crypto')
 
 // 型態別稱
-type Request  = express.Request
+type Request = express.Request
 type Response = express.Response
-type Next     = express.NextFunction
+type Next = express.NextFunction
 
 export let ssoRouter = express.Router()
 
-var inMemoryDatabase: {email: string, tokens: string[]}[] = []
+var inMemoryDatabase: { email: string, tokens: string[] }[] = []
 
 /*
  GET /
@@ -85,14 +85,14 @@ ssoRouter.get('', (req: Request, res: Response, next: Next) => {
   }
 })
 
-ssoRouter.post('/login',  (req: Request, res: Response, next: Next) => {
+ssoRouter.post('/login', (req: Request, res: Response, next: Next) => {
   let redirectUrl = req.query.redirectUrl
   let email = req.body.email
   let password = req.body.password
-  
+
   // 在真實的系統中，將會針對電子郵件位址以及密碼進行認證
   // 但是，這個部分是 SSO 的工作，不再專案範圍
-  
+
   // 已認證，產生代幣
   crypto.randomBytes(32, (err, buf) => {
     let token = buf.toString('hex')
@@ -105,14 +105,8 @@ ssoRouter.post('/login',  (req: Request, res: Response, next: Next) => {
         tokens: [token]
       })
     }
-    
-    // 寫入 Cookie
-    // res.cookie('sso-token', token)
-    // 重新導向
-    console.log('token = ', token)
-    console.log('redirectUrl = ', redirectUrl)
+
     redirectUrl = redirectUrl + token
-    console.log('redirect to url: ' + redirectUrl)
     res.redirect(redirectUrl)
   })
 })
@@ -137,4 +131,3 @@ ssoRouter.post('/validate', (req: Request, res: Response, next: Next) => {
     }
   }
 })
-		

@@ -36,6 +36,7 @@ ENV MONGO_DB   isms
 # 環境變數（網頁應用程式）
 ENV ENDPOINT http://changhua.shanehsu.idv.tw:3000
 ENV SSOURL   http://changhua.shanehsu.idv.tw:3000/sso
+ENV APP_ENABLED 1
 
 # 執行
 CMD node ~/src/distribution/server.js

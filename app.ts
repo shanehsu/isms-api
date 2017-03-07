@@ -35,7 +35,10 @@ app.use((req, res, next) => {
 })
 
 // 網頁應用程式
-app.use('/app', isms_app)
+let app_enabled = process.env.APP_ENABLED ? process.env.APP_ENABLED == 1 : true
+if (app_enabled) {
+  app.use('/app', isms_app)
+}
 
 // 路由
 app.use('/api', APIRouter)

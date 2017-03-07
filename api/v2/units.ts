@@ -18,7 +18,7 @@ export let unitsRouter = express.Router()
 
 unitsRouter.use((req, res, next) => {
   if (req.method.toLowerCase() == 'options') { next(); return; }
-  if (req['group'] as Group == 'guests') {
+  if (req.group == 'guests') {
     res.status(401).send()
   } else {
     next()
