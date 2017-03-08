@@ -1,5 +1,5 @@
 import express = require('express')
-import { UserInterface } from './../../libs/models'
+import { User, UserInterface } from './../../libs/models'
 import { Group } from './../../libs/models'
 import { Record, RecordInterface } from './../../libs/models'
 import { Unit, UnitInterface } from './../../libs/models'
@@ -578,13 +578,25 @@ recordsRouter.put('/:id', async (req, res, next) => {
   // 非管理人員，必須是本人才可以編輯
   let recordId = req.params.id
   try {
+    let record = await Record.findById(recordId)
+    let userId = record.signatures[0].personnel
+    let user = await User.findById(userId)
+
+    if (req.body.signature != user.name) {
+      next(new Error(`簽名錯誤`))
+      return
+    }
+
     await Record.findOneAndUpdate({
       "_id": recordId,
       "owner": req.user.id,
       "status": "declined"
     }, {
         "$set": {
-          "contents": req.body
+          "contents": req.body.contents,
+          "signatures.0.as": req.body.signature,
+          "signatures.0.signed": true,
+          "status": "awaiting_review"
         }
       })
   } catch (err) {
