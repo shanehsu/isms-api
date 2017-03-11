@@ -28,7 +28,6 @@ app.use(jsonParser)
 app.use(urlEncodedParser)
 app.use(corsHeader)
 app.use(noCache)
-app.use(randomResponseTimeDelay)
 
 app.use((req, res, next) => {
   next()
@@ -41,6 +40,7 @@ if (app_enabled) {
 }
 
 // 路由
+app.use(randomResponseTimeDelay)
 app.use('/api', APIRouter)
 app.use('/sso', ssoRouter)
 
