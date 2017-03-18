@@ -111,23 +111,17 @@ ssoRouter.post('/login', (req: Request, res: Response, next: Next) => {
   })
 })
 
-ssoRouter.post('/validate', (req: Request, res: Response, next: Next) => {
-  let token = req.body.token
+export async function validate(token: string): Promise<{ valid: boolean, email?: string }> {
   if (!token) {
-    next(new Error('要求主體不包含代幣（token）'))
+    throw new Error('要求主體不包含代幣（token）')
   } else {
     let exists = inMemoryDatabase.findIndex(record => record.tokens.includes(token)) >= 0
     if (exists) {
       let record = inMemoryDatabase.find(record => record.tokens.includes(token))
       record.tokens.splice(record.tokens.indexOf(token), 1)
-      res.json({
-        valid: true,
-        email: record.email
-      })
+      return { valid: true, email: record.email }
     } else {
-      res.json({
-        valid: false
-      })
+      return { valid: false }
     }
   }
-})
+}

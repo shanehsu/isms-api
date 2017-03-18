@@ -3,6 +3,8 @@ import { User, Group, TokenInterface } from './../../libs/models'
 import request = require('request-promise-native')
 import crypto = require('crypto')
 
+import { validate } from './../../sso'
+
 export let loginRouter = express.Router()
 
 loginRouter.use((req, res, next) => {
@@ -15,16 +17,10 @@ loginRouter.use((req, res, next) => {
   }
 })
 
-loginRouter.get('/sso', (req, res, next) => {
-  res.json({
-    action: 'redirect',
-    target: 'http://localhost:3000/sso'
-  })
-})
 loginRouter.post('/sso', (req, res, next) => {
   let ssoToken = req.body.sso_token
   if (ssoToken) {
-    request.post('http://localhost:3000/sso/validate', { body: { token: ssoToken }, json: true }).then(value => {
+    validate(ssoToken).then(value => {
       if (value && value.valid == true && value.email) {
         let t = token(req)
         User.find({ email: value.email }).then(users => {
