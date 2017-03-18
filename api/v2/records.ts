@@ -478,7 +478,7 @@ recordsRouter.post('/', async (req, res, next) => {
   })
 
   signatures[0].signed = true
-  signatures[0].as = req.body.signature
+  signatures[0].as = req.user.name
 
   let noSignaturesRequired = signatures.reduce((prev, signature) => { return signature.signed && prev }, true)
 
@@ -525,7 +525,7 @@ recordsRouter.post('/:id/actions/sign', (req, res, next) => {
 
     itsSignature.signed = true
     itsSignature.timestamp = new Date()
-    itsSignature.as = req.body.as
+    itsSignature.as = req.user.name
 
     if (record.signatures.indexOf(itsSignature) == record.signatures.length - 1) {
       record.status = 'accepted'
@@ -582,11 +582,6 @@ recordsRouter.put('/:id', async (req, res, next) => {
     let userId = record.signatures[0].personnel
     let user = await User.findById(userId)
 
-    if (req.body.signature != user.name) {
-      next(new Error(`簽名錯誤`))
-      return
-    }
-
     await Record.findOneAndUpdate({
       "_id": recordId,
       "owner": req.user.id,
@@ -594,7 +589,7 @@ recordsRouter.put('/:id', async (req, res, next) => {
     }, {
         "$set": {
           "contents": req.body.contents,
-          "signatures.0.as": req.body.signature,
+          "signatures.0.as": user.name,
           "signatures.0.signed": true,
           "status": "awaiting_review"
         }
@@ -607,7 +602,7 @@ recordsRouter.put('/:id', async (req, res, next) => {
   res.status(204).send()
 })
 recordsRouter.put('/:id', (req, res, next) => {
-  let group: Group = req.group
+  let group = req.group
   let recordId = req.params.id
 
   if (group != 'admins') {
