@@ -108,6 +108,7 @@ unitsRouter.put('/:unitId', async (req, res, next) => {
       occupiedUsers.add(member)
     }
   }
+
   let newMembers = [
     ...unitsDictionary[unitId].members.agents,
     ...unitsDictionary[unitId].members.vendors,
@@ -120,12 +121,14 @@ unitsRouter.put('/:unitId', async (req, res, next) => {
     newMembers.push(unitsDictionary[unitId].members.docsControl)
   }
 
+  let newMembersSet = new Set<string>(newMembers)
+
   // a. 成員必須存在於資料庫中
   let users: UserInterface[] = []
   try {
     users = await User.find({
       "_id": {
-        "$in": newMembers
+        "$in": Array.from(newMembersSet)
       }
     })
   } catch (err) {
