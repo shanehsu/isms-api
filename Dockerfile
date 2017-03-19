@@ -7,7 +7,7 @@ FROM aarch64/node:7.7.1
 RUN mkdir /root/src
 
 # 安裝 TypeScript 編譯器
-RUN npm install --global typescript@next
+RUN npm install --global typescript
 
 # 因為該版本的 node 已經有 git 了
 # 直接下載專案
@@ -26,7 +26,8 @@ RUN npm install
 RUN tsc
 
 # 使用通訊埠
-EXPOSE 3000
+EXPOSE 80
+EXPOSE 443
 
 # 環境變數（API）
 ENV MONGO_HOST mongodb
@@ -34,8 +35,8 @@ ENV MONGO_PORT 27017
 ENV MONGO_DB   isms
 
 # 環境變數（網頁應用程式）
-ENV ENDPOINT http://changhua.shanehsu.idv.tw:3000
-ENV SSOURL   http://changhua.shanehsu.idv.tw:3000/sso
+ENV ENDPOINT https://changhua.shanehsu.idv.tw
+ENV SSOURL   https://changhua.shanehsu.idv.tw/sso
 ENV APP_ENABLED 1
 
 # 執行
