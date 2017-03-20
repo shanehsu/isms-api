@@ -8,20 +8,22 @@ import http = require('http')
 import spdy = require('spdy')
 import redirect = require('redirect-https')
 
-let port = +process.env.PORT || '3000'
+if (process.env.NOSSL) {
+  http.createServer(app).listen(80)
+} else {
+  let lock = greenlock.create({
+    "server": 'staging',
+    "email": 'hsu.pengjun@icloud.com',
+    "agreeTos": true,
+    "approveDomains": ['changhua.shanehsu.idv.tw']
+  })
 
-let lock = greenlock.create({
-  "server": 'staging',
-  "email": 'hsu.pengjun@icloud.com',
-  "agreeTos": true,
-  "approveDomains": ['changhua.shanehsu.idv.tw']
-})
+  http.createServer(lock.middleware(redirect())).listen(80, () => {
+    debug("在通訊埠 80 上處理 ACME 測驗")
+  })
 
-http.createServer(lock.middleware(redirect())).listen(80, () => {
-  debug("在通訊埠 80 上處理 ACME 測驗")
-})
-
-spdy.createServer(lock.httpsOptions, lock.middleware(app)).listen(443, () => {
-  debug("在通訊埠 443 上處理 ACME 測驗")
-  debug("在通訊埠 443 上服務使用者")
-})
+  spdy.createServer(lock.httpsOptions, lock.middleware(app)).listen(443, () => {
+    debug("在通訊埠 443 上處理 ACME 測驗")
+    debug("在通訊埠 443 上服務使用者")
+  })
+}

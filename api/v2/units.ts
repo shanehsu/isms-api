@@ -110,15 +110,15 @@ unitsRouter.put('/:unitId', async (req, res, next) => {
   }
 
   let newMembers = [
-    ...unitsDictionary[unitId].members.agents,
-    ...unitsDictionary[unitId].members.vendors,
-    ...unitsDictionary[unitId].members.none
+    ...unitsDictionary[unitId].members.agents.map(u => u.toString()),
+    ...unitsDictionary[unitId].members.vendors.map(u => u.toString()),
+    ...unitsDictionary[unitId].members.none.map(u => u.toString())
   ]
   if (unitsDictionary[unitId].members.manager) {
-    newMembers.push(unitsDictionary[unitId].members.manager)
+    newMembers.push(unitsDictionary[unitId].members.manager.toString())
   }
   if (unitsDictionary[unitId].members.docsControl) {
-    newMembers.push(unitsDictionary[unitId].members.docsControl)
+    newMembers.push(unitsDictionary[unitId].members.docsControl.toString())
   }
 
   let newMembersSet = new Set<string>(newMembers)
@@ -135,6 +135,9 @@ unitsRouter.put('/:unitId', async (req, res, next) => {
     next(err)
     return
   }
+
+  console.dir(newMembersSet)
+  console.dir(users)
 
   if (users.length != newMembersSet.size) {
     next(new Error('成員不存在於資料庫中'))
