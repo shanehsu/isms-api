@@ -136,7 +136,7 @@ unitsRouter.put('/:unitId', async (req, res, next) => {
     return
   }
 
-  if (users.length != newMembers.length) {
+  if (users.length != newMembersSet.size) {
     next(new Error('成員不存在於資料庫中'))
     return
   }
