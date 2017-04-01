@@ -2,3 +2,7 @@
 	path = isms-app
 	url = https://github.com/shanehsu/isms-app.git
 	branch = master
+[submodule "isms-api"]
+	path = isms-api
+	url = https://github.com/shanehsu/isms-api.git
+	branch = master
