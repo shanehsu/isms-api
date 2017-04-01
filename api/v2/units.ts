@@ -18,7 +18,7 @@ export let unitsRouter = express.Router()
 
 unitsRouter.use((req, res, next) => {
   if (req.method.toLowerCase() == 'options') { next(); return; }
-  if (req['group'] as Group == 'guests') {
+  if (req.group == 'guests') {
     res.status(401).send()
   } else {
     next()
@@ -108,24 +108,27 @@ unitsRouter.put('/:unitId', async (req, res, next) => {
       occupiedUsers.add(member)
     }
   }
+
   let newMembers = [
-    ...unitsDictionary[unitId].members.agents,
-    ...unitsDictionary[unitId].members.vendors,
-    ...unitsDictionary[unitId].members.none
+    ...unitsDictionary[unitId].members.agents.map(u => u.toString()),
+    ...unitsDictionary[unitId].members.vendors.map(u => u.toString()),
+    ...unitsDictionary[unitId].members.none.map(u => u.toString())
   ]
   if (unitsDictionary[unitId].members.manager) {
-    newMembers.push(unitsDictionary[unitId].members.manager)
+    newMembers.push(unitsDictionary[unitId].members.manager.toString())
   }
   if (unitsDictionary[unitId].members.docsControl) {
-    newMembers.push(unitsDictionary[unitId].members.docsControl)
+    newMembers.push(unitsDictionary[unitId].members.docsControl.toString())
   }
+
+  let newMembersSet = new Set<string>(newMembers)
 
   // a. 成員必須存在於資料庫中
   let users: UserInterface[] = []
   try {
     users = await User.find({
       "_id": {
-        "$in": newMembers
+        "$in": Array.from(newMembersSet)
       }
     })
   } catch (err) {
@@ -133,7 +136,10 @@ unitsRouter.put('/:unitId', async (req, res, next) => {
     return
   }
 
-  if (users.length != newMembers.length) {
+  console.dir(newMembersSet)
+  console.dir(users)
+
+  if (users.length != newMembersSet.size) {
     next(new Error('成員不存在於資料庫中'))
     return
   }

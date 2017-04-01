@@ -6,7 +6,7 @@ export let formsRouter = express.Router()
 
 formsRouter.use((req, res, next) => {
   if (req.method.toLowerCase() == 'options') { next(); return; }
-  if (req['group'] as Group == 'guests') {
+  if (req.group == 'guests') {
     res.status(401).send()
   } else {
     next()
@@ -200,7 +200,7 @@ formsRouter.get('/:formId', async (req, res, next) => {
 
 formsRouter.use((req, res, next) => {
   if (req.method.toLowerCase() == 'options') { next(); return; }
-  if (req['group'] as Group == 'admins') {
+  if (req.group == 'admins') {
     next()
   } else {
     res.status(401).send()

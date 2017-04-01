@@ -1,92 +1,29 @@
-#!/usr/bin/env node
-
 'use strict'
 
-/**
- * Module dependencies.
- */
+let app = require('./app')
+let debug = require('debug')('isms_api')
+let greenlock = require('greenlock-express')
 
-var app   = require('./app')
-var debug = require('debug')('isms_api')
-var http  = require('http')
+import http = require('http')
+import spdy = require('spdy')
+import redirect = require('redirect-https')
 
-/**
- * Get port from environment and store in Express.
- */
+if (process.env.NOSSL) {
+  http.createServer(app).listen(80)
+} else {
+  let lock = greenlock.create({
+    "server": 'staging',
+    "email": 'hsu.pengjun@icloud.com',
+    "agreeTos": true,
+    "approveDomains": ['changhua.shanehsu.idv.tw']
+  })
 
-var port: any = normalizePort(process.env.PORT || '3000')
-app.set('port', port)
+  http.createServer(lock.middleware(redirect())).listen(80, () => {
+    debug("在通訊埠 80 上處理 ACME 測驗")
+  })
 
-/**
- * Create HTTP server.
- */
-
-var server = http.createServer(app)
-
-/**
- * Listen on provided port, on all network interfaces.
- */
-
-server.listen(port)
-server.on('error', onError)
-server.on('listening', onListening)
-
-/**
- * Normalize a port into a number, string, or false.
- */
-
-function normalizePort(val: any): any {
-  var port = parseInt(val, 10)
-
-  if (isNaN(port)) {
-    // named pipe
-    return val
-  }
-
-  if (port >= 0) {
-    // port number
-    return port
-  }
-
-  return false
-}
-
-/**
- * Event listener for HTTP server "error" event.
- */
-
-function onError(error) {
-  if (error.syscall !== 'listen') {
-    throw error
-  }
-
-  var bind = typeof port === 'string'
-    ? 'Pipe ' + port
-    : 'Port ' + port
-
-  // handle specific listen errors with friendly messages
-  switch (error.code) {
-    case 'EACCES':
-      console.error(bind + ' requires elevated privileges')
-      process.exit(1)
-      break
-    case 'EADDRINUSE':
-      console.error(bind + ' is already in use')
-      process.exit(1)
-      break
-    default:
-      throw error
-  }
-}
-
-/**
- * Event listener for HTTP server "listening" event.
- */
-
-function onListening() {
-  var addr = server.address()
-  var bind = typeof addr === 'string'
-    ? 'pipe ' + addr
-    : 'port ' + addr.port
-  debug('Listening on ' + bind)
+  spdy.createServer(lock.httpsOptions, lock.middleware(app)).listen(443, () => {
+    debug("在通訊埠 443 上處理 ACME 測驗")
+    debug("在通訊埠 443 上服務使用者")
+  })
 }

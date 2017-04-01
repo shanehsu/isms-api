@@ -17,16 +17,18 @@ V2Router.use(async (req, res, next) => {
 
   if (token != undefined) {
     try {
-      let user = await User.find({ 'tokens.token': token }).limit(1)[0]
-      if (user) {
-        req['user'] = null
-        req['authenticated'] = false
-        req['group'] = 'guests' as Group
+      let users = await User.find({ 'tokens.token': token }).limit(1)
+      if (users[0]) {
+        console.log('authenticated!')
+        req.user = users[0]
+        req.authenticated = true
+        req.group = users[0].group
         next()
       } else {
-        req['user'] = null
-        req['authenticated'] = false
-        req['group'] = 'guests' as Group
+        console.log('not authenticated! -- 1')
+        req.user = null
+        req.authenticated = false
+        req.group = 'guests'
         next()
       }
     } catch (err) {
@@ -36,9 +38,10 @@ V2Router.use(async (req, res, next) => {
       })
     }
   } else {
-    req['user'] = null
-    req['authenticated'] = false
-    req['group'] = 'guests' as Group
+    console.log('not authenticated! -- 2')
+    req.user = null
+    req.authenticated = false
+    req.group = 'guests'
     next()
   }
 })

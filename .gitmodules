@@ -1,3 +1,4 @@
 [submodule "isms-app"]
 	path = isms-app
 	url = https://github.com/shanehsu/isms-app.git
+	branch = master

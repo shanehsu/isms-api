@@ -1,5 +1,5 @@
 import express = require('express')
-import { UserInterface } from './../../libs/models'
+import { User, UserInterface } from './../../libs/models'
 import { Group } from './../../libs/models'
 import { Record, RecordInterface } from './../../libs/models'
 import { Unit, UnitInterface } from './../../libs/models'
@@ -48,7 +48,7 @@ function getResponsibilityChain(userId: string): Promise<string[]> {
 }
 recordsRouter.use((req, res, next) => {
   if (req.method.toLowerCase() == 'options') { next(); return; }
-  if (req['group'] as Group == 'guests') {
+  if (req.group == 'guests') {
     res.status(401).send()
   } else {
     next()
@@ -374,7 +374,7 @@ recordsRouter.post('/', async (req, res, next) => {
   // 3. 有單位歸屬
 
   // 判斷 (1)
-  if (!latestRevision.groups.includes(req['group'])) {
+  if (!latestRevision.groups.includes(req.group)) {
     res.status(401).send()
     return
   }
@@ -478,7 +478,7 @@ recordsRouter.post('/', async (req, res, next) => {
   })
 
   signatures[0].signed = true
-  signatures[0].as = req.body.signature
+  signatures[0].as = req.user.name
 
   let noSignaturesRequired = signatures.reduce((prev, signature) => { return signature.signed && prev }, true)
 
@@ -497,7 +497,9 @@ recordsRouter.post('/', async (req, res, next) => {
   })
 
   try {
+    console.dir(record)
     let savedRecord = await record.save()
+    console.dir(savedRecord)
     res.status(201).send(savedRecord.id)
   } catch (err) {
     next(err)
@@ -505,7 +507,7 @@ recordsRouter.post('/', async (req, res, next) => {
   }
 })
 recordsRouter.post('/:id/actions/sign', (req, res, next) => {
-  let userId = (<UserInterface>req['user']).id
+  let userId = req.user.id
   // 先取得該資料
   let recordId = req.params.id
 
@@ -523,7 +525,7 @@ recordsRouter.post('/:id/actions/sign', (req, res, next) => {
 
     itsSignature.signed = true
     itsSignature.timestamp = new Date()
-    itsSignature.as = req.body.as
+    itsSignature.as = req.user.name
 
     if (record.signatures.indexOf(itsSignature) == record.signatures.length - 1) {
       record.status = 'accepted'
@@ -535,7 +537,7 @@ recordsRouter.post('/:id/actions/sign', (req, res, next) => {
   }).catch(next)
 })
 recordsRouter.post('/:id/actions/decline', (req, res, next) => {
-  let userId = (<UserInterface>req['user']).id
+  let userId = req.user.id
   // 先取得該資料
   let recordId = req.params.id
 
@@ -576,13 +578,20 @@ recordsRouter.put('/:id', async (req, res, next) => {
   // 非管理人員，必須是本人才可以編輯
   let recordId = req.params.id
   try {
+    let record = await Record.findById(recordId)
+    let userId = record.signatures[0].personnel
+    let user = await User.findById(userId)
+
     await Record.findOneAndUpdate({
       "_id": recordId,
       "owner": req.user.id,
       "status": "declined"
     }, {
         "$set": {
-          "contents": req.body
+          "contents": req.body.contents,
+          "signatures.0.as": user.name,
+          "signatures.0.signed": true,
+          "status": "awaiting_review"
         }
       })
   } catch (err) {
@@ -593,7 +602,7 @@ recordsRouter.put('/:id', async (req, res, next) => {
   res.status(204).send()
 })
 recordsRouter.put('/:id', (req, res, next) => {
-  let group: Group = req.group
+  let group = req.group
   let recordId = req.params.id
 
   if (group != 'admins') {

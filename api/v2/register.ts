@@ -6,7 +6,7 @@ export let registerRouter = express.Router()
 
 registerRouter.use((req, res, next) => {
   if (req.method.toLowerCase() == 'options') { next(); return; }
-  let group = req['group'] as Group
+  let group = req.group
   if (group == "guests") {
     next()
   } else {

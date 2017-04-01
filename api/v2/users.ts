@@ -6,7 +6,7 @@ export let usersRouter = express.Router()
 
 usersRouter.use((req, res, next) => {
   if (req.method.toLowerCase() == 'options') { next(); return; }
-  if (req['group'] as Group != 'admins') {
+  if (req.group != 'admins') {
     res.status(401).send()
   } else {
     next()
