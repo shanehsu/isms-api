@@ -40,7 +40,7 @@ if (app_enabled) {
 }
 
 // 路由
-app.use(randomResponseTimeDelay)
+// app.use(randomResponseTimeDelay)
 app.use('/api', APIRouter)
 app.use('/sso', ssoRouter)
 

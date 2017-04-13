@@ -1,6 +1,7 @@
 import express = require('express')
 import { User, Unit, Group } from './../../libs/models'
 import { generatePassword } from './../../util/auth'
+import { ObjectID } from "mongodb"
 
 export let usersRouter = express.Router()
 
@@ -74,7 +75,7 @@ usersRouter.delete('/:id', (req, res, next) => {
       },
       {
         $match: {
-          _members: user.id
+          _members: new ObjectID(user.id)
         }
       }
     ]).then(units => {

@@ -5,20 +5,19 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Launch Program",
-      "type": "node2",
+      "name": "啟動",
+      "preLaunchTask": "編譯",
+      "type": "node",
       "request": "launch",
       "program": "${workspaceRoot}/distribution/server.js",
       "cwd": "${workspaceRoot}",
       "env": {
-        "MONGO_PORT": "32768"
+        "MONGO_HOST": "127.0.0.1",
+        "MONGO_PORT": "32768",
+        "APP_ENABLED": "0",
+        "NOSSL": "1",
+        "DEBUG": "*"
       }
-    },
-    {
-      "name": "Attach to Process",
-      "type": "node2",
-      "request": "attach",
-      "port": 9229
     }
   ]
 }

@@ -9,7 +9,7 @@ import spdy = require('spdy')
 import redirect = require('redirect-https')
 
 if (process.env.NOSSL) {
-  http.createServer(app).listen(80)
+  http.createServer(app).listen(8080)
 } else {
   let lock = greenlock.create({
     "server": 'staging',

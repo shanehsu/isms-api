@@ -38,6 +38,7 @@ ENV MONGO_DB   isms
 ENV ENDPOINT https://changhua.shanehsu.idv.tw
 ENV SSOURL   https://changhua.shanehsu.idv.tw/sso
 ENV APP_ENABLED 1
+ENV NOSSL 0
 
 # 執行
 CMD node ~/src/distribution/server.js
