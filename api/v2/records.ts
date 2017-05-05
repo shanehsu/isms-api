@@ -141,6 +141,7 @@ recordsRouter.get('/', async (req, res, next) => {
       }
     }, {
       $addFields: {
+        "formIdentifier": "$_form.identifier",
         "formName": "$_form.name",
         "revisionNumber": "$_form.revisions.number",
         "ownerName": { "$arrayElemAt": ["$_owner.name", 0] },
