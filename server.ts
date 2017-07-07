@@ -9,7 +9,10 @@ import spdy = require('spdy')
 import redirect = require('redirect-https')
 
 if (process.env.NOSSL) {
-  http.createServer(app).listen(8080)
+  let port: number = Number.parseInt((process.env["PORT"] ? process.env["PORT"] : "80"), 10)
+  if (port < 0) { port = 80 }
+
+  http.createServer(app).listen(port)
 } else {
   let lock = greenlock.create({
     "server": 'staging',

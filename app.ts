@@ -3,9 +3,7 @@
 import express = require('express')
 import { corsHeader, noCache, randomResponseTimeDelay } from './util/middlewares'
 import { APIRouter } from './api/api'
-import { ssoRouter } from './sso'
 
-var isms_app: express.Express = require('./../isms-app/express-server').app
 var mongoose = require('./util/mongoose')
 var colors = require('colors/safe')
 var logger = require('morgan')('dev')
@@ -33,16 +31,9 @@ app.use((req, res, next) => {
   next()
 })
 
-// 網頁應用程式
-let app_enabled = process.env.APP_ENABLED ? process.env.APP_ENABLED == 1 : true
-if (app_enabled) {
-  app.use('/app', isms_app)
-}
-
 // 路由
 // app.use(randomResponseTimeDelay)
 app.use('/api', APIRouter)
-app.use('/sso', ssoRouter)
 
 // 404 處理常式
 app.use((req: Request, res: Response, next: Next) => {

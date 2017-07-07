@@ -6,7 +6,7 @@ const port = process.env['MONGO_PORT'] ? +process.env['MONGO_PORT'] : 27017
 const db = process.env['MONGO_DB'] ? process.env['MONGO_DB'] : 'isms'
 const db_uri = `mongodb://${host}:${port}/${db}`
 
-mongoose.connect(db_uri)
+mongoose.connect(db_uri, { useMongoClient: true })
 
 // 成功連線的訊息
 mongoose.connection.on('connected', () => {

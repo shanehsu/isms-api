@@ -3,8 +3,6 @@ import { User, Group, TokenInterface } from './../../libs/models'
 import request = require('request-promise-native')
 import crypto = require('crypto')
 
-import { validate } from './../../sso'
-
 export let loginRouter = express.Router()
 
 loginRouter.use((req, res, next) => {
@@ -17,34 +15,39 @@ loginRouter.use((req, res, next) => {
   }
 })
 
-loginRouter.post('/sso', (req, res, next) => {
-  let ssoToken = req.body.sso_token
-  if (ssoToken) {
-    validate(ssoToken).then(value => {
-      if (value && value.valid == true && value.email) {
-        let t = token(req)
-        User.find({ email: value.email }).then(users => {
-          if (users.length == 1) {
-            User.findByIdAndUpdate(users[0].id, {
-              $push: { tokens: t }
-            }).then(_ => res.json({ success: true, token: t.token })).catch(err => next(err))
-          } else if (users.length == 0) {
-            res.status(500).json({
-              success: false,
-              message: '您的帳號不在該系統內，請通知系統管理員。'
-            })
-          } else {
-            next(new Error('使用電子郵件搜尋使用者時，資料庫回傳多個項目。'))
-          }
-        }).catch(err => next(err))
-      }
-    }).catch(err => next(err))
-  } else {
-    res.status(500).json({
-      success: false,
-      message: '必須有 sso-token 這個餅乾屑。'
-    })
-  }
+loginRouter.get('/sso', (req, res, next) => {
+  console.dir(req)
+  let email = req.headers["user-id"] + "@cc.ncue.edu.tw"
+  console.dir(req.headers)
+  console.log(email)
+  User.find({ email: email }).then(users => {
+    if (users.length == 1) {
+      let token = createToken(req)
+      User.findByIdAndUpdate(users[0].id, {
+        $push: { tokens: token }
+      }).then(_ => res.send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <script>
+              localStorage.setItem("token", "${token.token}");
+              window.close();
+            </script>
+          </head>
+        </html>
+      `))
+    } else if (users.length == 0) {
+      res.json({
+        success: false,
+        message: '您的帳號不在該系統內，請通知系統管理員。'
+      })
+    } else {
+      res.json({
+        success: false,
+        message: '使用電子郵件搜尋使用者時，資料庫回傳多個項目。'
+      })
+    }
+  }).catch(err => next(err))
 })
 
 loginRouter.post('/standalone', (req, res, next) => {
@@ -59,7 +62,7 @@ loginRouter.post('/standalone', (req, res, next) => {
           } else {
             let digest = key.toString('hex')
             if (digest == user.password.hash) {
-              let t = token(req)
+              let t = createToken(req)
 
               User.findByIdAndUpdate(user.id, {
                 $push: { tokens: t }
@@ -87,11 +90,11 @@ loginRouter.post('/standalone', (req, res, next) => {
  * 
  * @param {Express.Request} req 要求 
  */
-function token(req: express.Request): TokenInterface {
+function createToken(req: express.Request): TokenInterface {
   return {
     token: crypto.randomBytes(16).toString('hex'),
     used: new Date(),
     origin: req.ip,
-    userAgent: req.headers['user-agent']
+    userAgent: (req.headers['user-agent'] as string)
   }
 }
